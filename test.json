@@ -1,0 +1,245 @@
+{
+    "__type__" : "Maze",
+    "dimension_count": 5,
+    "dimension_lengths": [3, 3, 3, 3, 3],
+    "dimensions_locked": [true, true, true, true, true],
+    "start": [0, 0, 0, 0, 0],
+    "goal": [1, 1, 1, 1, 1],
+    "items": [
+        {
+            "type": "dimension_unlocker",
+            "dimension_unlocked": 1,
+            "shape": "sphere.data",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "type": "dimension_unlocker",
+            "dimension_unlocked": 2,
+            "shape": "sphere.data",
+            "position": [1, 0, 0, 0, 0]              
+        },
+        {
+            "type": "dimension_unlocker",
+            "dimension_unlocked": 3,
+            "shape": "sphere.data",
+            "position": [1, 1, 0, 0, 0]              
+        },
+        {
+            "type": "dimension_unlocker",
+            "dimension_unlocked": 4,
+            "shape": "sphere.data",
+            "position": [1, 1, 1, 0, 0]              
+        },
+        {
+            "type": "dimension_unlocker",
+            "dimension_unlocked": 5,
+            "shape": "sphere.data",
+            "position": [1, 1, 1, 1, 0]              
+        },
+        {
+            "type": "orientation_resetter",
+            "shape": "pentachoron.data",
+            "position": [0, 0, 0, 0, 0]              
+        },
+        {
+            "type": "coordinates_displayer",
+            "shape": "tesseract.data",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "type": "path_rememberer",
+            "shape": "hexadecachoron.data",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "type": "map",
+            "shape": "icositetrachoron.data",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "type": "navigator",
+            "shape": "hecatonicosachoron.data",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "type": "dimension_swapper",
+            "shape": "hexacosichoron.data",
+            "position": [0, 0, 0, 0, 0]
+        }
+    ],
+    "events": [
+        {
+            "audio": "beginning.mp3",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "audio": "middle.mp3",
+            "position": [0, 0, 0, 0, 0]
+        },
+        {
+            "audio": "end.mp3",
+            "position": [0, 0, 0, 0, 0]
+        }
+    ],
+    "grid_walls": [
+        [
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ]
+        ],
+        [
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ]
+        ],
+        [
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ],
+                [
+                    [0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]
+                ]
+            ]
+        ]
+    ]
+}

@@ -7,77 +7,72 @@
     "goal": [1, 1, 1, 1, 1],
     "items": [
         {
-            "type": "dimension_unlocker",
+            "item_type": "dimension_unlocker",
             "dimension_unlocked": 1,
-            "shape": "sphere.data",
+            "shape_file": "sphere.data",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "type": "dimension_unlocker",
+            "item_type": "dimension_unlocker",
             "dimension_unlocked": 2,
-            "shape": "sphere.data",
-            "position": [1, 0, 0, 0, 0]              
+            "shape_file": "sphere.data",
+            "position": [1, 0, 0, 0, 0]
         },
         {
-            "type": "dimension_unlocker",
+            "item_type": "dimension_unlocker",
             "dimension_unlocked": 3,
-            "shape": "sphere.data",
-            "position": [1, 1, 0, 0, 0]              
+            "shape_file": "sphere.data",
+            "position": [1, 1, 0, 0, 0]
         },
         {
-            "type": "dimension_unlocker",
+            "item_type": "dimension_unlocker",
             "dimension_unlocked": 4,
-            "shape": "sphere.data",
-            "position": [1, 1, 1, 0, 0]              
+            "shape_file": "sphere.data",
+            "position": [1, 1, 1, 0, 0]
         },
         {
-            "type": "dimension_unlocker",
+            "item_type": "dimension_unlocker",
             "dimension_unlocked": 5,
-            "shape": "sphere.data",
-            "position": [1, 1, 1, 1, 0]              
+            "shape_file": "sphere.data",
+            "position": [1, 1, 1, 1, 0]
         },
         {
-            "type": "orientation_resetter",
-            "shape": "pentachoron.data",
-            "position": [0, 0, 0, 0, 0]              
-        },
-        {
-            "type": "coordinates_displayer",
-            "shape": "tesseract.data",
+            "item_type": "orientation_resetter",
+            "shape_file": "pentachoron.data",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "type": "path_rememberer",
-            "shape": "hexadecachoron.data",
+            "item_type": "coordinates_displayer",
+            "shape_file": "tesseract.data",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "type": "map",
-            "shape": "icositetrachoron.data",
+            "item_type": "path_rememberer",
+            "shape_file": "hexadecachoron.data",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "type": "navigator",
-            "shape": "hecatonicosachoron.data",
+            "item_type": "maze_navigator",
+            "shape_file": "icositetrachoron.data",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "type": "dimension_swapper",
-            "shape": "hexacosichoron.data",
+            "item_type": "dimension_swapper",
+            "shape_file": "hexacosichoron.data",
             "position": [0, 0, 0, 0, 0]
         }
     ],
     "events": [
         {
-            "audio": "beginning.mp3",
+            "audio_file": "beginning.mp3",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "audio": "middle.mp3",
+            "audio_file": "middle.mp3",
             "position": [0, 0, 0, 0, 0]
         },
         {
-            "audio": "end.mp3",
+            "audio_file": "end.mp3",
             "position": [0, 0, 0, 0, 0]
         }
     ],

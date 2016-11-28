@@ -1,0 +1,87 @@
+{
+    "__type__" : "Maze",
+    "dimension_count": 3,
+    "dimension_lengths": [5, 5, 3],
+    "dimensions_locked": [true, true],
+    "player": {
+        "position": [0, 0, 0],
+        "orientation": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    },
+    "goal": [2, 4, 1],
+    "items": [
+        {
+            "item_type": "dimension_unlocker",
+            "dimension_unlocked": 1,
+            "shape_file": "sphere.data",
+            "position": [0, 0]
+        },
+        {
+            "item_type": "dimension_unlocker",
+            "dimension_unlocked": 2,
+            "shape_file": "sphere.data",
+            "position": [2, 0]
+        },
+        {
+            "item_type": "orientation_resetter",
+            "shape_file": "pentachoron.data",
+            "position": [0, 0]
+        },
+        {
+            "item_type": "coordinates_displayer",
+            "shape_file": "tesseract.data",
+            "position": [0, 0]
+        },
+        {
+            "item_type": "path_rememberer",
+            "shape_file": "hexadecachoron.data",
+            "position": [0, 0]
+        },
+        {
+            "item_type": "maze_navigator",
+            "shape_file": "icositetrachoron.data",
+            "position": [0, 0]
+        },
+        {
+            "item_type": "dimension_swapper",
+            "shape_file": "hexacosichoron.data",
+            "position": [0, 0]
+        }
+    ],
+    "events": [
+        {
+            "audio_file": "beginning.mp3",
+            "position": [0, 0]
+        },
+        {
+            "audio_file": "middle.mp3",
+            "position": [0, 0]
+        },
+        {
+            "audio_file": "end.mp3",
+            "position": [0, 0]
+        }
+    ],
+    "grid_walls": [
+        [
+            [62, 60, 60, 60, 57],
+            [58, 60, 60, 57, 51],
+            [51, 58, 60, 48, 53],
+            [51, 51, 58, 52, 57],
+            [54, 52, 52, 44, 53]
+        ],
+        [
+            [42, 56, 56, 56, 57],
+            [50, 48, 48, 48, 49],
+            [50, 48, 48, 48, 49],
+            [50, 48, 48, 48, 49],
+            [54, 52, 52, 15, 53]
+        ],
+        [
+            [30, 60, 60, 60, 57],
+            [58, 60, 60, 57, 51],
+            [51, 58, 60, 48, 53],
+            [51, 51, 58, 52, 57],
+            [54, 52, 52, 28, 53]
+        ]
+    ]
+}

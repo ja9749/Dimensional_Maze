@@ -11,4 +11,4 @@ class Event:
 
         self.audio_file = audio_file
         self.position = position
-        print(vars(self), "\n")
+        #print(vars(self), "\n")

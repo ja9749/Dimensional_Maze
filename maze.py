@@ -24,25 +24,20 @@ class Maze:
     def move_player(self, dimension, direction):
 
         test = 0
-        if dimension == 0 and direction > 0:
-            test = 1
-        elif dimension == 0 and direction < 0:
-            test = 2
-        elif dimension == 1 and direction > 0:
-            test = 4
-        elif dimension == 1 and direction < 0:
-            test = 8
-        elif dimension == 2 and direction > 0:
-            test = 16
-        elif dimension == 2 and direction < 0:
-            test = 32
-        
-        pos_x = self.player.position[0]
-        pos_y = self.player.position[1]
-        pos_z = self.player.position[2]
+        if direction > 0:
+            test = 2 ** (dimension * 2)
+        else:
+            test = 2 ** (dimension * 2 + 1)
 
-        if not ((self.grid_walls[pos_z][pos_y][pos_x] & test)):
+        if not (self.get_grid_walls_number() & test):
             self.player.move(dimension, direction)
             return True
 
         return False
+
+    def get_grid_walls_number(self):
+        grid_number = self.grid_walls
+        for i in reversed(self.player.position):
+            grid_number = grid_number[i]
+
+        return grid_number

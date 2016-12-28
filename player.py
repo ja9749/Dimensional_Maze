@@ -26,9 +26,7 @@ class Player:
 
         """TODO: Complete Docstring: rotate Function."""
 
-        direction_matrix = numpy.array([[1, 0, 0],
-                                    [0, 1, 0],
-                                    [0, 0, 1]], int)
+        direction_matrix = numpy.identity(len(self.position))
 
         if dimension[0] == 1 and dimension[1] == 2:
             direction_matrix[dimension[0]][dimension[1]] = direction
@@ -42,3 +40,4 @@ class Player:
             direction_matrix[dimension[1]][dimension[1]] = 0
 
         self.orientation = numpy.matmul(self.orientation, direction_matrix)
+

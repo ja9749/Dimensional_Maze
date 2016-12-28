@@ -71,7 +71,7 @@ def play_game(display, maze):
                 if event.key == pygame.K_ESCAPE:
                     game_exit = True
                 else:
-                    move = input_handler.handle_key_event(event.key, maze)
+                    move = input_handler.handle_key_event(pygame.key.get_pressed(), maze)
                     (movement_type, dimension, direction) = move
                     if movement_type == 0:
                         direction_vector = np.array(

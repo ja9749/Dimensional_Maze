@@ -1,7 +1,7 @@
 """TODO: Complete Docstring: input_handler.py"""
 
 import pygame
-
+from enum import Enum
 
 class Input_Handler:
 
@@ -12,164 +12,73 @@ class Input_Handler:
         """TODO: Complete Docstring: __init__ Function."""
 
         pygame.init()
-        #print(vars(self), "\n")
 
-    def handle_key_event(self, keys, maze):
-        if (keys[pygame.K_1] and keys[pygame.K_UP]):
+    def handle_key_event(self, keys):
+
+        if keys[pygame.K_ESCAPE]:
+            return (Input_Type.EXIT, -1, -1)
+
+        for direction in range(0, 2):
+            for dimension in range(0, 9):
+                if (keys[pygame.K_1 + dimension] and 
+                    keys[pygame.K_UP + direction]):
+                    print("MOVE_4D", dimension, -2 * direction + 1)
+                    return (Input_Type.MOVE_4D, dimension, -2 * direction + 1)
+
+        for direction in range(0, 2):
+            for dimension in range(1, 9):
+                if (keys[pygame.K_1 + dimension] and
+                    keys[pygame.K_w - 4 * direction]):
+                    print("ROTATE_4D", dimension, -2 * direction + 1)
+                    return (Input_Type.ROTATE_4D, dimension, -2 * direction + 1)
+
+        if (keys[pygame.K_UP]):
             print("UP")
-            return (2, 0, 1)
-        elif (keys[pygame.K_1] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 0, -1)
-        elif (keys[pygame.K_2] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 1, 1)
-        elif (keys[pygame.K_2] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 1, -1)
-        elif (keys[pygame.K_3] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 2, 1)
-        elif (keys[pygame.K_3] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 2, -1)
-        elif (keys[pygame.K_4] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 3, 1)
-        elif (keys[pygame.K_4] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 3, -1)
-        elif (keys[pygame.K_5] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 4, 1)
-        elif (keys[pygame.K_5] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 4, -1)
-        elif (keys[pygame.K_6] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 5, 1)
-        elif (keys[pygame.K_6] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 5, -1)
-        elif (keys[pygame.K_7] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 6, 1)
-        elif (keys[pygame.K_7] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 6, -1)
-        elif (keys[pygame.K_8] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 7, 1)
-        elif (keys[pygame.K_8] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 7, -1)
-        elif (keys[pygame.K_9] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 8, 1)
-        elif (keys[pygame.K_9] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 8, -1)
-        elif (keys[pygame.K_0] and keys[pygame.K_UP]):
-            print("UP")
-            return (2, 9, 1)
-        elif (keys[pygame.K_0] and keys[pygame.K_DOWN]):
-            print("DOWN")
-            return (2, 9, -1)
-        elif (keys[pygame.K_1] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 0, 1)
-        elif (keys[pygame.K_1] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 0, -1)
-        elif (keys[pygame.K_2] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 1, 1)
-        elif (keys[pygame.K_2] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 1, -1)
-        elif (keys[pygame.K_3] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 2, 1)
-        elif (keys[pygame.K_3] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 2, -1)
-        elif (keys[pygame.K_4] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 3, 1)
-        elif (keys[pygame.K_4] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 3, -1)
-        elif (keys[pygame.K_5] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 4, 1)
-        elif (keys[pygame.K_5] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 4, -1)
-        elif (keys[pygame.K_6] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 5, 1)
-        elif (keys[pygame.K_6] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 5, -1)
-        elif (keys[pygame.K_7] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 6, 1)
-        elif (keys[pygame.K_7] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 6, -1)
-        elif (keys[pygame.K_8] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 7, 1)
-        elif (keys[pygame.K_8] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 7, -1)
-        elif (keys[pygame.K_9] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 8, 1)
-        elif (keys[pygame.K_9] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 8, -1)
-        elif (keys[pygame.K_0] and keys[pygame.K_w]):
-            print("UP")
-            return (3, 9, 1)
-        elif (keys[pygame.K_0] and keys[pygame.K_s]):
-            print("DOWN")
-            return (3, 9, -1)
-        elif (keys[pygame.K_UP]):
-            print("UP")
-            return (0, 0, 1)
+            return (Input_Type.MOVE_3D, 0, 1)
         elif (keys[pygame.K_DOWN]):
             print("DOWN")
-            return (0, 0, -1)
+            return (Input_Type.MOVE_3D, 0, -1)
         elif keys[pygame.K_RIGHT]:
             print("RIGHT")
-            return (0, 1, 1)
+            return (Input_Type.MOVE_3D, 1, 1)
         elif keys[pygame.K_LEFT]:
             print("LEFT")
-            return (0, 1, -1)
+            return (Input_Type.MOVE_3D, 1, -1)
         elif keys[pygame.K_z]:
             print("Z")
-            return (0, 2, 1)
+            return (Input_Type.MOVE_3D, 2, 1)
         elif keys[pygame.K_x]:
             print("X")
-            return (0, 2, -1)
+            return (Input_Type.MOVE_3D, 2, -1)
         elif keys[pygame.K_d]:
             print("D")
-            return (1, (0, 1), 1)
+            return (Input_Type.ROTATE_3D, [0, 1], 1)
         elif keys[pygame.K_a]:
             print("A")
-            return (1, (0, 1), -1)
+            return (Input_Type.ROTATE_3D, [0, 1], -1)
         elif keys[pygame.K_w]:
             print("W")
-            return (1, (0, 2), 1)
+            return (Input_Type.ROTATE_3D, [0, 2], 1)
         elif keys[pygame.K_s]:
             print("S")
-            return (1, (0, 2), -1)
-        elif keys[pygame.K_e]:
-            print("E")
-            return (1, (1, 2), 1)
+            return (Input_Type.ROTATE_3D, [0, 2], -1)
         elif keys[pygame.K_q]:
             print("Q")
-            return (1, (1, 2), -1)
+            return (Input_Type.ROTATE_3D, [1, 2], 1)
+        elif keys[pygame.K_e]:
+            print("E")
+            return (Input_Type.ROTATE_3D, [1, 2], -1)
         else:
-            return (-1, 0, 0)
+            print("Invalid")
+            return (Input_Type.INVALID_MOVE, -1, -1)
+
+class Input_Type(Enum):
+
+    """TODO: Complete Docstring: ItemType Class."""
+
+    INVALID_MOVE = -1
+    EXIT = 0
+    MOVE_3D = 1
+    ROTATE_3D = 2
+    MOVE_4D = 3
+    ROTATE_4D = 4

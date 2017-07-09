@@ -1,112 +1,126 @@
 """TODO: Complete Docstring: dimensional_maze.py"""
 
-import json
 import pygame
-import numpy as np
+import numpy
 import math
 
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from maze import Maze
-from item import Item
-from event import Event
-from player import Player
-from display import Display
 from input_handler import Input_Handler
+from input_handler import Input_Type
+from maze import Maze
+from display import Display
+
+def rel_vec_dim(dimension, orientation):
+    vector = numpy.array([0] * len(orientation))
+    vector[dimension] = 1
+    vector = orientation.dot(vector).astype(int)
+    dimension = numpy.nonzero(vector)[0][0]
+
+    return (vector, dimension)
 
 
-def load_maze(json_file_name):
+def relative_move(orientation, dimension, direction):
+    (vector, dimension) = rel_vec_dim(dimension, orientation)
+    direction = vector[dimension] * direction
 
-    """TODO: Complete Docstring: load_maze Function"""
+    return (dimension, direction)
 
-    maze = []
-    with open(json_file_name) as json_file:
-        json_object = json.load(json_file)
-        if '__type__' in json_object and json_object['__type__'] == 'Maze':
-            items = []
-            for item in json_object['items']:
-                items.append(Item(item['item_type'],
-                                  item['shape_file'],
-                                  item['position']))
 
-            events = []
-            for event in json_object['events']:
-                events.append(Event(event['audio_file'], event['position']))
-            
-            player = Player(json_object['player']['position'],
-                            json_object['player']['orientation'])
+def relative_rotate(orientation, dimension, direction):
+    (vector_1, dimension[0]) = rel_vec_dim(dimension[0], orientation)
+    (vector_2, dimension[1]) = rel_vec_dim(dimension[1], orientation)
 
-            maze = Maze(json_object['dimension_count'],
-                        json_object['dimension_lengths'],
-                        json_object['dimensions_locked'],
-                        player,
-                        json_object['goal'],
-                        items,
-                        events,
-                        json_object['grid_walls'])
-    return maze
+    dimension.sort()
 
-def play_game(display, maze):
+    test_vectors = [numpy.array([0] * len(orientation)),
+                    numpy.array([0] * len(orientation)),
+                    numpy.array([0] * len(orientation)),
+                    numpy.array([0] * len(orientation))]
+
+    test_vectors[0][dimension[0]] = 1
+    test_vectors[1][dimension[1]] = 1
+    test_vectors[2][dimension[0]] = -1
+    test_vectors[3][dimension[1]] = -1
+
+    for v2 in range(0,4):
+        v1 = (v2 + 1) % 4
+        if (numpy.array_equal(vector_1, test_vectors[v1]) and 
+            numpy.array_equal(vector_2, test_vectors[v2])):
+            direction = -1 * direction
+
+    return (dimension, direction)
+
+
+def play_game(input_handler, maze, display):
 
     """TODO: Complete Docstring: play_game Function"""
 
+    display.draw_3D(maze)
+
     game_exit = False
-    redraw = True
-
-    input_handler = Input_Handler()
-
-    display.draw(maze)
-
     while not game_exit:
 
         if maze.player.position.tolist() == maze.goal:
+            print("WIN")
             game_exit = True
 
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 game_exit = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    game_exit = True
-                else:
-                    move = input_handler.handle_key_event(pygame.key.get_pressed(), maze)
-                    (movement_type, dimension, direction) = move
-                    if movement_type == 0:
-                        direction_vector = np.array(
-                            [0] * maze.dimension_count)
-                        direction_vector[dimension] = float(direction)
-                        rotated_vector = maze.player.orientation.dot(
-                            direction_vector).astype(int)
-                        dimension = np.where(rotated_vector != 0)[0][0]
-                        direction = rotated_vector[dimension]
-                        if maze.move_player(dimension, direction):
-                            for i in range(0, 10):
-                                display.move(
-                                    dimension, direction * 0.1)
-                                display.draw(maze)
-                    elif movement_type == 1:
-                        maze.player.rotate(dimension, direction)
+                
+            elif event.type == pygame.KEYDOWN:
 
-                        for i in range(0, 10):
-                            display.rotate(
-                                dimension, direction * 0.05 * math.pi)
-                            display.draw(maze)
-                    redraw = True
-            pygame.event.clear() 
-            break
+                keys_pressed = pygame.key.get_pressed()
+                output = input_handler.handle_key_event(keys_pressed)
+                (input_type, dimension, direction) = output
+
+                if input_type == pygame.K_ESCAPE:
+                    game_exit = True
+                elif (input_type == Input_Type.MOVE_3D or 
+                      input_type == Input_Type.MOVE_4D):
+
+                    if input_type == Input_Type.MOVE_3D:
+                        (dimension, direction) = relative_move(maze.player.orientation,
+                                                               dimension,
+                                                               direction)
+
+                    if maze.move_player(dimension, direction):
+                        display.draw_move(dimension, direction, maze)
+
+                elif (input_type == Input_Type.ROTATE_3D or
+                      input_type == Input_Type.ROTATE_4D):
+
+                    if input_type == Input_Type.ROTATE_4D:
+                        dimension = [0, dimension]
+
+                    (dimension, direction) = relative_rotate(maze.player.orientation,
+                                                             dimension,
+                                                             direction)
+
+                    maze.player.rotate(dimension, direction)
+                    display.draw_rotate(dimension, direction, maze)                        
+
+            pygame.event.clear()
 
 def main():
 
     """TODO: Complete Docstring: main Function"""
     
     pygame.init()
-    maze = load_maze('small.json')
-    display = Display(maze.player.position, maze.player.orientation)
-    play_game(display, maze)
+
+    input_handler = Input_Handler()
+    maze = Maze.load_from_file_name('test.json')
+    display = Display(maze.player.position,
+                      maze.player.orientation,
+                      maze.grid_walls)
+    
+    play_game(input_handler, maze, display)
+
     pygame.quit()
-    return
 
 
 if __name__ == '__main__':

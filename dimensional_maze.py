@@ -1,124 +1,119 @@
-"""TODO: Complete Docstring: dimensional_maze.py"""
+"""Starting point of the game Dimensional Maze.
 
+This module initialises all the necessary components, runs the game loop and 
+handles the exit for the game.
+"""
+import logging
 import pygame
-import numpy
-import math
 
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from input_handler import Input_Handler
-from input_handler import Input_Type
+from input_handler import handle_key_event, Input_Type
 from maze import Maze
 from display import Display
+from dimensional_maze_library import *
 
-def rel_vec_dim(dimension, orientation):
-    vector = numpy.array([0] * len(orientation))
-    vector[dimension] = 1
-    vector = orientation.dot(vector).astype(int)
-    dimension = numpy.nonzero(vector)[0][0]
-
-    return (vector, dimension)
+#Module level logger. Outputs debug info to external file.
+logging.basicConfig(filename='log.txt', filemode='w', level=logging.DEBUG)
+logger = logging.getLogger('dimensional_maze')
 
 
-def relative_move(orientation, dimension, direction):
-    (vector, dimension) = rel_vec_dim(dimension, orientation)
-    direction = vector[dimension] * direction
+def play_game(maze):
+    """Run game loop until quit or win.
 
-    return (dimension, direction)
-
-
-def relative_rotate(orientation, dimension, direction):
-    (vector_1, dimension[0]) = rel_vec_dim(dimension[0], orientation)
-    (vector_2, dimension[1]) = rel_vec_dim(dimension[1], orientation)
-
-    dimension.sort()
-
-    test_vectors = [numpy.array([0] * len(orientation)),
-                    numpy.array([0] * len(orientation)),
-                    numpy.array([0] * len(orientation)),
-                    numpy.array([0] * len(orientation))]
-
-    test_vectors[0][dimension[0]] = 1
-    test_vectors[1][dimension[1]] = 1
-    test_vectors[2][dimension[0]] = -1
-    test_vectors[3][dimension[1]] = -1
-
-    for v2 in range(0,4):
-        v1 = (v2 + 1) % 4
-        if (numpy.array_equal(vector_1, test_vectors[v1]) and 
-            numpy.array_equal(vector_2, test_vectors[v2])):
-            direction = -1 * direction
-
-    return (dimension, direction)
-
-
-def play_game(input_handler, maze, display):
-
-    """TODO: Complete Docstring: play_game Function"""
-
+    Run the game loop, listening for and handling inputs while updating the
+    display until the player either wins or quits the game.
+    
+    Keyword arguments:
+    maze -- Main game object containing layout of the maze as well as player,
+        enemy and item information.
+    """
+    #Initialise display object and draw maze.
+    display = Display(
+        maze.player.position, maze.player.orientation, maze.walls)
     display.draw_3D(maze)
 
+    #Variable signalling when to quit the game
     game_exit = False
+
+    #Main game loop. Carries on until an exit condition sets game_exit to True.
     while not game_exit:
 
+        # If the player's position matches the position of the goal, quit game.
         if maze.player.position.tolist() == maze.goal:
-            print("WIN")
+            logger.debug("WIN")
             game_exit = True
 
+        # Loop through all events in pygame. This also clears the event queue.
         for event in pygame.event.get():
 
+            #If event is of type QUIT, signal end of game.
             if event.type == pygame.QUIT:
                 game_exit = True
-                
-            elif event.type == pygame.KEYDOWN:
+                break
 
+            #The only other useful event type is KEYDOWN.
+            elif event.type == pygame.KEYDOWN:
+                #Get the currently pressed keys and interpret them.
                 keys_pressed = pygame.key.get_pressed()
-                output = input_handler.handle_key_event(keys_pressed)
+                output = handle_key_event(keys_pressed)
                 (input_type, dimension, direction) = output
 
-                if input_type == pygame.K_ESCAPE:
+                #If input_type is of type Exit, signal end of game.
+                if input_type == Input_Type.EXIT:
                     game_exit = True
-                elif (input_type == Input_Type.MOVE_3D or 
+                    break
+
+                #Else if input_type is of type MOVE_, attempt to move player.
+                elif (input_type == Input_Type.MOVE_3D or
                       input_type == Input_Type.MOVE_4D):
 
+                    #If input_type is of type MOVE_3D, get relative dimension
+                    #and direction from the players current orientation.
                     if input_type == Input_Type.MOVE_3D:
-                        (dimension, direction) = relative_move(maze.player.orientation,
-                                                               dimension,
-                                                               direction)
+                        (dimension, direction) = relative_move(
+                            maze.player.orientation, dimension, direction)
 
+                    #If moving the player is successful, draw the move.
                     if maze.move_player(dimension, direction):
                         display.draw_move(dimension, direction, maze)
 
+                    break
+
+                #Else if input_type is of type ROTATE_XD, rotate player.
                 elif (input_type == Input_Type.ROTATE_3D or
                       input_type == Input_Type.ROTATE_4D):
 
+                    #If input_type is of type ROTATE_, transform dimension
+                    #into an array of 0 and itself to indicate rotating the
+                    #currently facing dimension (0) with the dimension chosen.
                     if input_type == Input_Type.ROTATE_4D:
                         dimension = [0, dimension]
 
-                    (dimension, direction) = relative_rotate(maze.player.orientation,
-                                                             dimension,
-                                                             direction)
+                    #Get relative dimension and direction from the players
+                    #current orientation.
+                    (dimension, direction) = relative_rotate(
+                        maze.player.orientation, dimension, direction)
 
+                    #Rotate player and draw that rotation.
                     maze.player.rotate(dimension, direction)
-                    display.draw_rotate(dimension, direction, maze)                        
+                    display.draw_rotate(dimension, direction, maze)
+                    break
 
-            pygame.event.clear()
 
 def main():
+    """Run Dimensional Maze Game.
 
-    """TODO: Complete Docstring: main Function"""
-    
+    Initialise all necessary data, run game and finally exit. Initialise pygame
+    module first, then the maze and subsequent game objects. Run game until
+    the player wins or exits the game. Clean up data and quit.
+    """
     pygame.init()
 
-    input_handler = Input_Handler()
     maze = Maze.load_from_file_name('test.json')
-    display = Display(maze.player.position,
-                      maze.player.orientation,
-                      maze.grid_walls)
-    
-    play_game(input_handler, maze, display)
+    play_game(maze)
 
     pygame.quit()
 

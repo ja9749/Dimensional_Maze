@@ -17,7 +17,7 @@ class Display:
 
     """TODO: Complete Docstring: Display Class."""
 
-    def __init__(self, position, orientation, grid_walls):
+    def __init__(self, position, orientation, walls):
 
         """TODO: Complete Docstring: __init__ Function."""
 
@@ -25,8 +25,8 @@ class Display:
         self.orientation = np.array(orientation).astype(float)
 
         self.calculate_visible_dimensions()
-        self.grid_walls = grid_walls
-        self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+        self.walls = walls
+        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
         pygame.init()
         pygame.display.set_caption(TITLE)
@@ -41,7 +41,7 @@ class Display:
         if dimension not in self.visible_dimensions:
             self.visible_dimensions.append(dimension)
             self.visible_dimensions.sort()
-            self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
         for i in range(0, 10):
             self.move(dimension, direction * 0.1)
@@ -51,7 +51,7 @@ class Display:
                 self.draw_4D(maze)
 
         self.calculate_visible_dimensions()
-        self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
     def move(self, dimension, direction):
 
@@ -63,11 +63,11 @@ class Display:
         if dimension[0] not in self.visible_dimensions:
             self.visible_dimensions.append(dimension[0])
             self.visible_dimensions.sort()
-            self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
         if dimension[1] not in self.visible_dimensions:
             self.visible_dimensions.append(dimension[1])
             self.visible_dimensions.sort()
-            self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
         if len(self.visible_dimensions) == 3:
             for i in range(0, 10):
@@ -79,7 +79,7 @@ class Display:
                 self.draw_4D(maze)
 
         self.calculate_visible_dimensions()
-        self.sub_grid_walls = self.create_sub_grid_walls(self.grid_walls, int(self.position.size - 1))
+        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
     def rotate(self, dimension, direction):
 
@@ -94,27 +94,25 @@ class Display:
         
         self.orientation = np.matmul(self.orientation, direction_matrix)
 
-    def create_sub_grid_walls(self, grid_walls, dimension_level):
-        sub_grid_walls = []
+    def create_sub_walls(self, walls, dimension_level):
+        sub_walls = []
 
         if dimension_level in self.visible_dimensions:
-            for i in range(0, len(grid_walls)):
+            for i in range(0, len(walls)):
                 if dimension_level > 0:
-                    sub_grid_walls.append(self.create_sub_grid_walls(grid_walls[i], dimension_level - 1))
+                    sub_walls.append(self.create_sub_walls(walls[i], dimension_level - 1))
                 else:
-                    sub_grid_walls.append(grid_walls[i])
+                    sub_walls.append(walls[i])
         else:
             if dimension_level > 0:
-                sub_grid_walls = self.create_sub_grid_walls(grid_walls[int(round(self.position[dimension_level]))], dimension_level - 1)
+                sub_walls = self.create_sub_walls(walls[int(round(self.position[dimension_level]))], dimension_level - 1)
             else:
-                sub_grid_walls = grid_walls[int(round(self.position[dimension_level]))]
+                sub_walls = walls[int(round(self.position[dimension_level]))]
 
-        return sub_grid_walls
+        return sub_walls
 
     def calculate_visible_dimensions(self):
         self.visible_dimensions = []
-
-        #print("orientation\n", self.orientation)
 
         vis_dim = np.zeros(len(self.position))
         vis_dim[0] = 1
@@ -144,7 +142,6 @@ class Display:
 
     def goal_check(self, goal, position, cube_pos, sub_dimensions):
         count = 0
-        #print("hey", goal, cube_pos, sub_dimensions, self.position)
         for i in range(0, len(goal)):
             if i in sub_dimensions:
                 if cube_pos[count] != goal[i]:
@@ -159,14 +156,12 @@ class Display:
         return []
 
     def calculate_colours(self, position, cube_pos, sub_dimensions, dimension_lengths):
-        #print(position, cube_pos, sub_dimensions, dimension_lengths)
         count = 0
         red = 0
         blue = 0
         green = 0
         for i in range(0, len(position)):
             if i in sub_dimensions:
-                #print(i, count)
                 if i % 3 == 0:
                     red = red + cube_pos[count] / dimension_lengths[count]
                 elif i % 3 == 1:
@@ -184,8 +179,6 @@ class Display:
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         sub_dimensions = self.visible_dimensions
-        
-        #print(self.orientation)
 
         sub_orientation = np.identity(3)
         sub_orientation[0][0] = self.orientation[0][sub_dimensions[0]]
@@ -219,15 +212,9 @@ class Display:
         glEnable(GL_POLYGON_SMOOTH)
         glLineWidth(5.0);
 
-        #print("dimension_lengths", self.visible_dimensions)
-
-        #print(maze.grid_walls)
-
-        #print(sub_orientation)
-
-        for k in range(0, len(self.sub_grid_walls)):
-            for j in range(0, len(self.sub_grid_walls[0])):
-                for i in range(0, len(self.sub_grid_walls[0][0])):
+        for k in range(0, len(self.sub_walls)):
+            for j in range(0, len(self.sub_walls[0])):
+                for i in range(0, len(self.sub_walls[0][0])):
 
                     translated_vertices = np.array([[0, 0, 0]] * 8, float)
                     rotated_vertices = np.array([[0, 0, 0]] * 8, float)
@@ -248,9 +235,6 @@ class Display:
                             vertices[vertex][2] + t_z)
 
                         rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-
-                        #print("translated_vertices", translated_vertices[vertex])
-                        #print("rotated_vertices", rotated_vertices[vertex])
                         rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
 
                         #rotated_vertices[vertex] = rotation_matrix.dot(
@@ -266,14 +250,10 @@ class Display:
                         glColor3fv((1, 1, 1))
 
                     for index in range(0, len(surfaces)):
-                        #print(maze.dimension_lengths[2], maze.dimension_lengths[1], maze.dimension_lengths[0], k, j, i)
-                        #print(maze.grid_walls)
-                        #print(i, j, k, maze.grid_walls[k][j][i], index)
                         dim = self.visible_dimensions[int(index / 2)]
                         even = index % 2
-                        if self.sub_grid_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
+                        if self.sub_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
                             
-                            #print("wall", index)
                             for vertex in surfaces[index]:
                                 glVertex3fv(rotated_vertices[vertex])
 
@@ -307,7 +287,6 @@ class Display:
         intersecting_vertices = []
         edge_numbers = []
         count = 0
-        #print("vertices", vertices)
 
         for edge in edges:
             vertex_1 = vertices[edge[0]]
@@ -326,13 +305,11 @@ class Display:
                 intersecting_vertices.append([x, y, z])
                 edge_numbers.append(count)
             count = count + 1
-        #print("inter", np.array(intersecting_vertices))
         return [np.array(intersecting_vertices), edge_numbers]
 
     def sort_vertex_numbers(self, vertex_numbers, intersecting_vertices):
         if len(vertex_numbers) != 4:
             return []
-        #print(vertex_numbers, intersecting_vertices)
 
         new_vertex_numbers = [vertex_numbers[0]]
 
@@ -390,15 +367,11 @@ class Display:
         return new_vertex_numbers
 
     def draw_4D(self, maze):
-        #input()
-
         """TODO: Complete Docstring: draw Function"""
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         sub_dimensions = self.visible_dimensions
-        
-        #print(self.orientation)
 
         sub_orientation = np.identity(4)
         sub_orientation[0][0] = self.orientation[sub_dimensions[0]][sub_dimensions[0]]
@@ -465,12 +438,10 @@ class Display:
         glEnable(GL_POLYGON_SMOOTH)
         glLineWidth(5.0);
 
-        #print("dimension_lengths", maze.dimension_lengths)
-
-        for l in range(0, len(maze.grid_walls)):
-            for k in range(0, len(maze.grid_walls[0])):
-                for j in range(0, len(maze.grid_walls[0][0])):
-                    for i in range(0, len(maze.grid_walls[0][0][0])):
+        for l in range(0, len(maze.walls)):
+            for k in range(0, len(maze.walls[0])):
+                for j in range(0, len(maze.walls[0][0])):
+                    for i in range(0, len(maze.walls[0][0][0])):
 
                         translated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
                         rotated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
@@ -493,16 +464,11 @@ class Display:
                                 vertices[vertex][3] + t_w)
 
                             rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-
-                            #print("translated_vertices", translated_vertices[vertex])
-                            #print("rotated_vertices", rotated_vertices[vertex])
-                            
                             #rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
 
                             #rotated_vertices[vertex] = rotation_matrix.dot(
                             #    translated_vertices[vertex])
 
-                        #print(rotated_vertices)
                         [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
 
                         if len(intersecting_vertices) > 0:
@@ -522,22 +488,16 @@ class Display:
                                 glColor3fv((1, 1, 1))
 
                             for index in range(0, len(cubes)):
-                                #print(maze.dimension_lengths[2], maze.dimension_lengths[1], maze.dimension_lengths[0], k, j, i)
-                                #print(maze.grid_walls)
-                                #print(index)
-                                #input()
                                 dim = self.visible_dimensions[int(index / 2)]
                                 even = index % 2
-                                if maze.grid_walls[l][k][j][i] & int(math.pow(2, (dim * 2 + even))):
+                                if maze.walls[l][k][j][i] & int(math.pow(2, (dim * 2 + even))):
                                     vertex_numbers = []
                                     for vertex in cubes[index]:
                                         if vertex in edge_numbers:
                                             vertex_numbers.append(edge_numbers.index(vertex))
                                     
                                     vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
-                                    
-                                    #print([i, j, k, l], vertex_numbers)
-                                    #print(intersecting_vertices)
+
                                     for vertex in vertex_numbers:
                                         glVertex3fv(intersecting_vertices[vertex])
 
@@ -568,18 +528,12 @@ class Display:
                             for vertex in range(0, len(intersecting_vertices)):
                                 intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
 
-                            #print(intersecting_vertices)
-
-                            
-
                             for index in range(0, len(surfaces)):
                                 vertex_numbers = []
                                 for vertex in surfaces[index]:
                                     if vertex in edge_numbers:
                                         vertex_numbers.append(edge_numbers.index(vertex))                                        
 
-                                #if len(vertex_numbers) != 0 and len(vertex_numbers) != 2:
-                                    #print("vertex_numbers", vertex_numbers)
                                 if len(vertex_numbers) == 2:
                                     for vertex in vertex_numbers:
                                         glVertex3fv(intersecting_vertices[vertex])

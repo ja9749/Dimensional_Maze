@@ -1,3 +1,17 @@
 *.pyc
 log.txt
 dimmaztemp.py
+build/dimensional_maze/base_library.zip
+build/dimensional_maze/dimensional_maze.exe
+build/dimensional_maze/dimensional_maze.exe.manifest
+build/dimensional_maze/out00-Analysis.toc
+build/dimensional_maze/out00-COLLECT.toc
+build/dimensional_maze/out00-EXE.toc
+tmp.txt
+Thumbs.db
+dimensional_maze.spec
+build/dimensional_maze/out00-PKG.pkg
+build/dimensional_maze/out00-PKG.toc
+build/dimensional_maze/out00-PYZ.pyz
+build/dimensional_maze/out00-PYZ.toc
+build/dimensional_maze/warndimensional_maze.txt

@@ -15,7 +15,6 @@ class Item:
         self.item_type = ItemType[item_type]
         self.shape_file = shape_file
         self.position = position
-        #print(vars(self), "\n")
 
 
 class ItemType(Enum):

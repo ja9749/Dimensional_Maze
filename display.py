@@ -369,6 +369,8 @@ class Display:
     def draw_4D(self, maze):
         """TODO: Complete Docstring: draw Function"""
 
+        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
+
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         sub_dimensions = self.visible_dimensions
@@ -438,10 +440,10 @@ class Display:
         glEnable(GL_POLYGON_SMOOTH)
         glLineWidth(5.0);
 
-        for l in range(0, len(maze.walls)):
-            for k in range(0, len(maze.walls[0])):
-                for j in range(0, len(maze.walls[0][0])):
-                    for i in range(0, len(maze.walls[0][0][0])):
+        for l in range(0, len(self.sub_walls)):
+            for k in range(0, len(self.sub_walls[0])):
+                for j in range(0, len(self.sub_walls[0][0])):
+                    for i in range(0, len(self.sub_walls[0][0][0])):
 
                         translated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
                         rotated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
@@ -490,7 +492,7 @@ class Display:
                             for index in range(0, len(cubes)):
                                 dim = self.visible_dimensions[int(index / 2)]
                                 even = index % 2
-                                if maze.walls[l][k][j][i] & int(math.pow(2, (dim * 2 + even))):
+                                if self.sub_walls[l][k][j][i] & int(math.pow(2, (dim * 2 + even))):
                                     vertex_numbers = []
                                     for vertex in cubes[index]:
                                         if vertex in edge_numbers:

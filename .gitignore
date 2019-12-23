@@ -15,3 +15,6 @@ build/dimensional_maze/out00-PKG.toc
 build/dimensional_maze/out00-PYZ.pyz
 build/dimensional_maze/out00-PYZ.toc
 build/dimensional_maze/warndimensional_maze.txt
+.vscode/settings.json
+.vscode/.ropeproject/config.py
+.vscode/.ropeproject/objectdb

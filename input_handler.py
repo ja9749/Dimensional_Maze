@@ -111,6 +111,7 @@ def handle_key_event(keys):
         logger.debug(' '.join(["Invalid", ' '.join(str(key) for key in keys)]))
         return (Input_Type.INVALID_MOVE, -1, -1)
 
+
 class Input_Type(Enum):
     """An enumerated class for the types of input received from the player
 

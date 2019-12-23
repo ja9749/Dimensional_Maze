@@ -1,7 +1,7 @@
 """Module containing the Maze data class for the game Dimensional Maze.
 
-This module contains the class Maze which holds all data relating to a level in
-the Dimensional Maze game.
+This module contains the class Maze which holds all data relating to a
+level in the Dimensional Maze game.
 """
 from item import Item
 from event import Event
@@ -13,9 +13,10 @@ import json
 class Maze:
     """Maze data class for the game Dimensional Maze.
 
-    This module contains the class Maze which holds all data relating to a level in
-    the Dimensional Maze game. That includes the structure of the maze, number and
-    length of dimensions, item, event objects and the player objects.
+    This module contains the class Maze which holds all data relating to
+    a level in the Dimensional Maze game. That includes the structure of
+    the maze, number and length of dimensions, item, event objects and
+    the player objects.
     """
     def __init__(self, dimension_count, dimension_lengths, dimensions_locked,
                  player, goal, items, events, walls):
@@ -25,17 +26,15 @@ class Maze:
         corresponding parameter in this maze object.
 
         Keyword arguments:
-        dimension_count -- Number of dimensions in this maze as an integer.
-        dimension_lengths -- An ordered array of the length of each dimension.
-        dimensions_locked -- An array of booleans indicating whether a dimension
-            is currently locked.
-        player -- An object of type Player holding the player information.
-        goal -- An array of numbers representing the coordinates for the goal of
-            the maze.
-        items -- A list of objects of type Item holding data about each item.
-        events -- A list of objects of type Event holding data about each event.
-        walls -- A n-dimensional array of numbers representing information
-        on where the walls of the maze are in each grid cell of the maze.
+        dimension_count -- No. of dimensions in this maze as an integer.
+        dimension_lengths -- Ordered integer array of dimension lengths.
+        dimensions_locked -- Ordered boolean array indicating whether a
+            dimension is currently locked.
+        player -- Player object holding the player information.
+        goal -- Ordered integer array with coordinates of the goal.
+        items -- List of Item objects.
+        events -- List Event objects.
+        walls -- n-dimensional integer array representing walls of maze.
         """
         self.dimension_count = dimension_count
         self.dimension_lengths = dimension_lengths
@@ -58,7 +57,7 @@ class Maze:
         Keyword arguments:
         maze -- Maze object being created.
         json_file_name -- Name of the the json file containing the Maze object's
-        data.
+            data.
         """
         with open(json_file_name) as json_file:
             json_object = json.load(json_file)
@@ -86,7 +85,6 @@ class Maze:
 
             return maze(dimension_count, dimension_lengths, dimensions_locked,
                         player, goal, items, events, walls)
-
 
     def move_player(self, dimension, direction):
         """Moves a player within the maze if possible.

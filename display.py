@@ -3,6 +3,7 @@
 import numpy as np
 import math
 import pygame
+import time
 
 from pygame.locals import *
 from OpenGL.GL import *
@@ -11,151 +12,164 @@ from OpenGL.GLU import *
 TITLE = 'Dimensional Maze'
 DISPLAY_WIDTH = 1600
 DISPLAY_HEIGHT = 1000
+MOVE_FRAMES = 10
+ROTATE_FRAMES = 20
+TOLERANCE = 1e-5
 
 
 class Display:
+    """Display class for the game Dimensional Maze.
 
-    """TODO: Complete Docstring: Display Class."""
-
+    This module contains the class Display which draws and displays the
+    current game state.
+    """
     def __init__(self, position, orientation, walls):
+        """Initialisation function for a Display object.
 
-        """TODO: Complete Docstring: __init__ Function."""
+        All arguments passed into this function are assigned to the
+        corresponding parameter in this player object.
 
+        Keyword arguments:
+        position -- The player's starting coordinates in the Maze.
+        orientation -- The player's starting orientation in the Maze.
+        walls -- The walls of the maze.
+        """
         self.position = np.array(position).astype(float)
-        self.orientation = np.array(orientation).astype(float)
+        
+        #Orientation of maze is inverse of player's orientation.
+        self.orientation = np.linalg.inv(np.array(orientation).astype(float))
 
+        #Calculate subset of maze cells visible to player
         self.calculate_visible_dimensions()
-        self.walls = walls
-        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
+        self.sub_walls = self.create_sub_walls(walls,
+                                               int(self.position.size - 1))
 
+        #Initialise pygame display
+        #TODO: Understand this section and make it editable for player.
         pygame.init()
         pygame.display.set_caption(TITLE)
         display = (DISPLAY_WIDTH, DISPLAY_HEIGHT)
-        self.game_display = pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
+        pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
         pygame.display.toggle_fullscreen()
         gluPerspective(60.0, (display[0]/display[1]), 1, 50.0)
         glTranslatef(0.0, 0.0, -1.0)
         glRotatef(20, 0, 0, 0)
 
     def draw_move(self, dimension, direction, maze):
-        if dimension not in self.visible_dimensions:
-            self.visible_dimensions.append(dimension)
-            self.visible_dimensions.sort()
-            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
+        """Draw the animation of a the player moving through the maze.
 
-        for i in range(0, 10):
-            self.move(dimension, direction * 0.1)
+        The maze is drawn a number of times with incremental changes in
+        player position along the given dimention and direction.
+
+        Keyword arguments:
+        dimension -- The dimension being moved through.
+        direction -- The direction being moved through.
+        maze -- Main game object containing layout of the maze as well
+            as player, enemy and item information.
+        """
+        for _ in range(0, MOVE_FRAMES):
+            self.position[dimension] += direction / MOVE_FRAMES
+            self.sub_walls = self.create_sub_walls(maze.walls,
+                                                   self.position.size - 1)
+            self.draw_3D(maze)
+
+    def draw_rotate(self, dimensions, direction, maze):
+        """Draw the animation of a the player rotating in the maze.
+
+        The maze is drawn a number of times with incremental changes in
+        player orientation around the given dimensions and direction.
+
+        Keyword arguments:
+        dimensions -- The dimensions being rotated around.
+        direction -- The direction the player is rotating.
+        maze -- Main game object containing layout of the maze as well
+            as player, enemy and item information.
+        """
+        angle = direction * math.pi * 0.5 / ROTATE_FRAMES
+        rotation_matrix = np.identity(len(self.position))
+        rotation_matrix[dimensions[0]][dimensions[1]] = math.sin(angle)
+        rotation_matrix[dimensions[1]][dimensions[0]] = -math.sin(angle)
+        rotation_matrix[dimensions[0]][dimensions[0]] = math.cos(angle)
+        rotation_matrix[dimensions[1]][dimensions[1]] = math.cos(angle)
+
+        for _ in range(0, ROTATE_FRAMES):
+            self.orientation = np.matmul(self.orientation, rotation_matrix)
+            self.calculate_visible_dimensions()
+            self.sub_walls = self.create_sub_walls(maze.walls,
+                                                   self.position.size - 1)
             if len(self.visible_dimensions) == 3:
                 self.draw_3D(maze)
             else:
                 self.draw_4D(maze)
 
-        self.calculate_visible_dimensions()
-        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
+    def create_sub_walls(self, walls, level):
+        """Create a multi-dimensional array which is a subset of the 
+        walls passed in representing what is visible to the player.
 
-    def move(self, dimension, direction):
+        This function recursively iterates through the multi-dimensional
+        array 'walls' picking out the grid cubes that are visible
+        according to self.visible dimensions to be added to a return
+        multi-dimensional array sub_walls.
 
-        """TODO: Complete Docstring: move Function."""
-
-        self.position[dimension] += direction
-
-    def draw_rotate(self, dimension, direction, maze):
-        if dimension[0] not in self.visible_dimensions:
-            self.visible_dimensions.append(dimension[0])
-            self.visible_dimensions.sort()
-            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
-        if dimension[1] not in self.visible_dimensions:
-            self.visible_dimensions.append(dimension[1])
-            self.visible_dimensions.sort()
-            self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
-
-        if len(self.visible_dimensions) == 3:
-            for i in range(0, 10):
-                self.rotate(dimension, direction * 0.05 * math.pi)
-                self.draw_3D(maze)
-        else:
-            for i in range(0, 40):
-                self.rotate(dimension, direction * 0.0125 * math.pi)
-                self.draw_4D(maze)
-
-        self.calculate_visible_dimensions()
-        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
-
-    def rotate(self, dimension, direction):
-
-        """TODO: Complete Docstring: rotate Function."""
-
-        direction_matrix = np.identity(len(self.position))
-
-        direction_matrix[dimension[0]][dimension[1]] = math.sin(direction)
-        direction_matrix[dimension[1]][dimension[0]] = -math.sin(direction)
-        direction_matrix[dimension[0]][dimension[0]] = math.cos(direction)
-        direction_matrix[dimension[1]][dimension[1]] = math.cos(direction)
-        
-        self.orientation = np.matmul(self.orientation, direction_matrix)
-
-    def create_sub_walls(self, walls, dimension_level):
+        Keyword arguments:
+        walls -- The walls of the maze.
+        level -- The recursion level representing the dimension of
+            walls being interated through.
+        """
         sub_walls = []
 
-        if dimension_level in self.visible_dimensions:
-            for i in range(0, len(walls)):
-                if dimension_level > 0:
-                    sub_walls.append(self.create_sub_walls(walls[i], dimension_level - 1))
-                else:
+        if level in self.visible_dimensions:
+            if level > 0:
+                for i in range(0, len(walls)):
+                    sub_walls.append(self.create_sub_walls(walls[i],
+                                                           level - 1))
+            else:
+                for i in range(0, len(walls)):
                     sub_walls.append(walls[i])
         else:
-            if dimension_level > 0:
-                sub_walls = self.create_sub_walls(walls[int(round(self.position[dimension_level]))], dimension_level - 1)
+            wall_index = int(round(self.position[level]))
+            if level > 0:
+                sub_walls = self.create_sub_walls(walls[wall_index], level - 1)
             else:
-                sub_walls = walls[int(round(self.position[dimension_level]))]
+                sub_walls = walls[wall_index]
 
         return sub_walls
 
     def calculate_visible_dimensions(self):
+        """Calculate the dimensions visible to the player using
+        orientation.
+        """
         self.visible_dimensions = []
 
-        vis_dim = np.zeros(len(self.position))
-        vis_dim[0] = 1
-        vis_dim = np.matmul(vis_dim, self.orientation)
+        for i in range(0, 3):
+            vis_dim = np.zeros(len(self.position))
+            vis_dim[i] = 1
+            vis_dim = np.matmul(vis_dim, self.orientation)
 
-        for i in range(0, len(vis_dim)):
-            if (vis_dim[i] >= 0.00001 or vis_dim[i] <= -0.00001) and i not in self.visible_dimensions:
-                self.visible_dimensions.append(i)
-
-        vis_dim = np.zeros(len(self.position))
-        vis_dim[1] = 1
-        vis_dim = np.matmul(vis_dim, self.orientation)
-
-        for i in range(0, len(vis_dim)):
-            if (vis_dim[i] >= 0.00001 or vis_dim[i] <= -0.00001) and i not in self.visible_dimensions:
-                self.visible_dimensions.append(i)
-
-        vis_dim = np.zeros(len(self.position))
-        vis_dim[2] = 1
-        vis_dim = np.matmul(vis_dim, self.orientation)
-
-        for i in range(0, len(vis_dim)):
-            if (vis_dim[i] >= 0.00001 or vis_dim[i] <= -0.00001) and i not in self.visible_dimensions:
-                self.visible_dimensions.append(i)
+            for j in range(0, len(vis_dim)):
+                if ((not math.isclose(vis_dim[j], 0.0, abs_tol=TOLERANCE)) and
+                        (j not in self.visible_dimensions)):
+                    self.visible_dimensions.append(j)
 
         self.visible_dimensions.sort()
 
-    def goal_check(self, goal, position, cube_pos, sub_dimensions):
-        count = 0
+
+    def goal_check(self, goal, position):
+        """Check whether the goal is visible to the player.
+
+        Keyword arguments:
+        goal -- The position of the goal.
+        position -- The position of the player.
+        """
         for i in range(0, len(goal)):
-            if i in sub_dimensions:
-                if cube_pos[count] != goal[i]:
-                    return False
-                count = count + 1
-            else:
+            if i not in self.visible_dimensions:
                 if position[i] != goal[i]:
                     return False
         return True
 
-    def calculate_colour():
-        return []
 
     def calculate_colours(self, position, cube_pos, sub_dimensions, dimension_lengths):
+        """TODO: Complete Docstring: calculate_colours Function"""
         count = 0
         red = 0
         blue = 0
@@ -172,24 +186,27 @@ class Display:
 
         return [red, green, blue]
 
-    def draw_3D(self, maze):
 
-        """TODO: Complete Docstring: draw Function"""
+    def draw_3D(self, maze):
+        """Transform, Colour and Render the maze and all its elements
+        according to the game state.
+
+        Keyword arguments:
+        maze -- The object containing all the game state information.
+        """
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-        sub_dimensions = self.visible_dimensions
-
         sub_orientation = np.identity(3)
-        sub_orientation[0][0] = self.orientation[0][sub_dimensions[0]]
-        sub_orientation[0][1] = self.orientation[0][sub_dimensions[1]]
-        sub_orientation[0][2] = self.orientation[0][sub_dimensions[2]]
-        sub_orientation[1][0] = self.orientation[1][sub_dimensions[0]]
-        sub_orientation[1][1] = self.orientation[1][sub_dimensions[1]]
-        sub_orientation[1][2] = self.orientation[1][sub_dimensions[2]]
-        sub_orientation[2][0] = self.orientation[2][sub_dimensions[0]]
-        sub_orientation[2][1] = self.orientation[2][sub_dimensions[1]]
-        sub_orientation[2][2] = self.orientation[2][sub_dimensions[2]]
+        sub_orientation[0][0] = self.orientation[0][self.visible_dimensions[0]]
+        sub_orientation[0][1] = self.orientation[0][self.visible_dimensions[1]]
+        sub_orientation[0][2] = self.orientation[0][self.visible_dimensions[2]]
+        sub_orientation[1][0] = self.orientation[1][self.visible_dimensions[0]]
+        sub_orientation[1][1] = self.orientation[1][self.visible_dimensions[1]]
+        sub_orientation[1][2] = self.orientation[1][self.visible_dimensions[2]]
+        sub_orientation[2][0] = self.orientation[2][self.visible_dimensions[0]]
+        sub_orientation[2][1] = self.orientation[2][self.visible_dimensions[1]]
+        sub_orientation[2][2] = self.orientation[2][self.visible_dimensions[2]]
 
         vertices = ((0.9999, 0.9999, 0.9999), (0.9999, 0.9999, -0.9999),
                     (0.9999, -0.9999, 0.9999), (0.9999, -0.9999, -0.9999),
@@ -219,13 +236,9 @@ class Display:
                     translated_vertices = np.array([[0, 0, 0]] * 8, float)
                     rotated_vertices = np.array([[0, 0, 0]] * 8, float)
 
-                    t_x = 2 * (i - self.position[sub_dimensions[0]])
-                    t_y = 2 * (j - self.position[sub_dimensions[1]])
-                    t_z = 2 * (k - self.position[sub_dimensions[2]])
-
-                    #t_x = 2 * (i - self.position[0])
-                    #t_y = 2 * (j - self.position[1])
-                    #t_z = 2 * (k - self.position[2])
+                    t_x = 2 * (i - self.position[self.visible_dimensions[0]])
+                    t_y = 2 * (j - self.position[self.visible_dimensions[1]])
+                    t_z = 2 * (k - self.position[self.visible_dimensions[2]])
 
                     for vertex in range(0, len(vertices)):
 
@@ -237,17 +250,10 @@ class Display:
                         rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
                         rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
 
-                        #rotated_vertices[vertex] = rotation_matrix.dot(
-                        #    translated_vertices[vertex])
-
                     glBegin(GL_QUADS)
 
-
-                    [red, green, blue] = self.calculate_colours(maze.player.position, [i, j, k], sub_dimensions, maze.dimension_lengths)
+                    [red, green, blue] = self.calculate_colours(maze.player.position, [i, j, k], self.visible_dimensions, maze.dimension_lengths)
                     glColor3fv((red, green, blue))
-
-                    if self.goal_check(maze.goal, maze.player.position, [i, j, k], sub_dimensions):
-                        glColor3fv((1, 1, 1))
 
                     for index in range(0, len(surfaces)):
                         dim = self.visible_dimensions[int(index / 2)]
@@ -280,6 +286,62 @@ class Display:
                             glVertex3fv(rotated_vertices[vertex])
 
                     glEnd()
+
+        [i, j, k] = [maze.goal[self.visible_dimensions[0]],
+                     maze.goal[self.visible_dimensions[1]],
+                     maze.goal[self.visible_dimensions[2]]]
+
+        translated_vertices = np.array([[0, 0, 0]] * 8, float)
+        rotated_vertices = np.array([[0, 0, 0]] * 8, float)
+
+        t_x = 2 * (i - self.position[self.visible_dimensions[0]])
+        t_y = 2 * (j - self.position[self.visible_dimensions[1]])
+        t_z = 2 * (k - self.position[self.visible_dimensions[2]])
+
+        for vertex in range(0, len(vertices)):
+
+            translated_vertices[vertex] = (
+                vertices[vertex][0] * 0.5 + t_x,
+                vertices[vertex][1] * 0.5 + t_y,
+                vertices[vertex][2] * 0.5 + t_z)
+
+            rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+            rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+
+        if self.goal_check(maze.goal, maze.player.position):
+
+            glBegin(GL_QUADS)
+
+            glColor3fv((1, 1, 1))
+
+            for index in range(0, len(surfaces)):
+                dim = self.visible_dimensions[int(index / 2)]
+                even = index % 2
+                #if self.sub_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
+
+                for vertex in surfaces[index]:
+                    glVertex3fv(rotated_vertices[vertex] + 0.001)
+
+            glEnd()
+
+            glBegin(GL_LINES)
+
+            for vertex in range(0, len(vertices)):
+                translated_vertices[vertex] = (
+                    line_vertices[vertex][0] * 0.5 + t_x,
+                    line_vertices[vertex][1] * 0.5 + t_y,
+                    line_vertices[vertex][2] * 0.5 + t_z)
+
+                rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+
+                rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+
+            for edge in edges:
+                for vertex in edge:
+                    glColor3fv((0, 0, 0))
+                    glVertex3fv(rotated_vertices[vertex])
+
+            glEnd()
 
         pygame.display.flip()
 
@@ -368,8 +430,6 @@ class Display:
 
     def draw_4D(self, maze):
         """TODO: Complete Docstring: draw Function"""
-
-        self.sub_walls = self.create_sub_walls(self.walls, int(self.position.size - 1))
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
@@ -486,7 +546,7 @@ class Display:
                             blue = k / maze.dimension_lengths[2]"""
                             glColor3fv((red, green, blue))
 
-                            if self.goal_check(maze.goal, maze.player.position, [i, j, k, l], sub_dimensions):
+                            if self.goal_check(maze.goal, maze.player.position):
                                 glColor3fv((1, 1, 1))
 
                             for index in range(0, len(cubes)):

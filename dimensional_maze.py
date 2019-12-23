@@ -1,7 +1,7 @@
 """Starting point of the game Dimensional Maze.
 
-This module initialises all the necessary components, runs the game loop and 
-handles the exit for the game.
+This module initialises all the necessary components, runs the game loop
+and handles the exit for the game.
 """
 import logging
 import pygame
@@ -23,12 +23,12 @@ logger = logging.getLogger('dimensional_maze')
 def play_game(maze):
     """Run game loop until quit or win.
 
-    Run the game loop, listening for and handling inputs while updating the
-    display until the player either wins or quits the game.
+    Run the game loop, listening for and handling inputs while updating
+    the display until the player either wins or quits the game.
     
     Keyword arguments:
-    maze -- Main game object containing layout of the maze as well as player,
-        enemy and item information.
+    maze -- Main game object containing layout of the maze as well as
+        player, enemy and item information.
     """
     #Initialise display object and draw maze.
     display = Display(
@@ -106,9 +106,9 @@ def play_game(maze):
 def main():
     """Run Dimensional Maze Game.
 
-    Initialise all necessary data, run game and finally exit. Initialise pygame
-    module first, then the maze and subsequent game objects. Run game until
-    the player wins or exits the game. Clean up data and quit.
+    Initialise all necessary data, run game and finally exit. Initialise
+    pygame module first, then the maze and subsequent game objects. Run
+    game until the player wins or exits the game. Clear data and quit.
     """
     pygame.init()
 

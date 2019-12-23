@@ -38,10 +38,9 @@ class Player:
         Keyword arguments:
         dimension -- The number of the dimension the player is moving in.
         direction -- The direction the player is moving in, 1 for +ve and -1
-        for -ve.
+            for -ve.
         """
         self.position[dimension] += direction
-
 
     def rotate(self, dimension, direction):
         """Rotates the the player's orientation.

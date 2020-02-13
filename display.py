@@ -4,6 +4,8 @@ import numpy as np
 import math
 import pygame
 import time
+import itertools
+import scipy.special
 
 from pygame.locals import *
 from OpenGL.GL import *
@@ -16,6 +18,128 @@ MOVE_FRAMES = 10
 ROTATE_FRAMES = 20
 TOLERANCE = 1e-5
 
+
+class HyperCube:
+    def __init__(self, dim_num):
+        print("\ndim_num", dim_num)
+
+        line_vertices = list(itertools.product([0.999, -0.999], repeat=dim_num))
+        temp_vertices = list(itertools.product([0.9999, -0.9999], repeat=dim_num))
+
+        wall_vertices = []
+        wall_line_vertices = []
+        for i in range(0, 2 * dim_num):
+            wall_vertices.append([])
+            wall_line_vertices.append([])
+            for vertex in temp_vertices:
+                if ((i & 1) and (vertex[i >> 1] < 0)) \
+                or (not (i & 1) and (vertex[i >> 1] > 0)):
+                    wall_vertices[i].append(vertex)
+                    wall_line_vertices[i].append(vertex)
+
+
+        print("\nline_vertices", line_vertices)
+        print("\nvertices", temp_vertices)
+        print("\nwall_vertices", wall_vertices)
+
+        wall_edges = []
+        wall_surfaces_vertices = []
+        wall_surface_edges = []
+        wall_cube_vertices = []
+        wall_cube_edges = []
+        vertices = wall_vertices[0]
+
+        edges = []
+        surfaces_vertices = []
+        surface_edges = []
+        cube_vertices = []
+        cube_edges = []
+
+        for i in range(0, len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1:
+                    edges.append((i, j))
+
+        for i in range(0, len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                for k in range(j + 1, len(vertices)):
+                    for l in range(k + 1, len(vertices)):
+                        if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
+                        and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
+                        and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
+                        and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1:
+                            surfaces_vertices.append((i, j, l, k))
+                            surface_edges.append((edges.index((i, j)),
+                                                edges.index((i, k)),
+                                                edges.index((j, l)),
+                                                edges.index((k, l))))
+
+        count = 0
+        for i in range(0, len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                for k in range(j + 1, len(vertices)):
+                    for l in range(k + 1, len(vertices)):
+                        for m in range(l + 1, len(vertices)):
+                            for n in range(m + 1, len(vertices)):
+                                for o in range(n + 1, len(vertices)):
+                                    for p in range(o + 1, len(vertices)):
+                                        if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[m]) != np.array(vertices[n])) == 1 \
+                                        and np.sum(np.array(vertices[m]) != np.array(vertices[o])) == 1 \
+                                        and np.sum(np.array(vertices[p]) != np.array(vertices[n])) == 1 \
+                                        and np.sum(np.array(vertices[p]) != np.array(vertices[o])) == 1 \
+                                        and np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[i]) != np.array(vertices[m])) == 1 \
+                                        and np.sum(np.array(vertices[n]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[n]) != np.array(vertices[m])) == 1 \
+                                        and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[i]) != np.array(vertices[m])) == 1 \
+                                        and np.sum(np.array(vertices[o]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[o]) != np.array(vertices[m])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[p])) == 1 \
+                                        and np.sum(np.array(vertices[n]) != np.array(vertices[j])) == 1 \
+                                        and np.sum(np.array(vertices[n]) != np.array(vertices[p])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[l]) != np.array(vertices[p])) == 1 \
+                                        and np.sum(np.array(vertices[o]) != np.array(vertices[k])) == 1 \
+                                        and np.sum(np.array(vertices[o]) != np.array(vertices[p])) == 1:
+                                            count += 1
+                                            print(count)
+                                            cube_vertices.append((i, j, k, l, m, n, o, p))
+                                            cube_edges.append((
+                                                edges.index((i, j)),
+                                                edges.index((i, k)),
+                                                edges.index((i, m)),
+                                                edges.index((j, l)),
+                                                edges.index((j, n)),
+                                                edges.index((k, l)),
+                                                edges.index((k, o)),
+                                                edges.index((l, p)),
+                                                edges.index((m, n)),
+                                                edges.index((m, o)),
+                                                edges.index((n, p)),
+                                                edges.index((o, p)),
+                                            ))
+
+        print("\nedges", edges)
+        print("\nsurfaces_vertices", surfaces_vertices)
+        print("\nsurfaces_edges", surface_edges)
+        print("\ncube_vertices", cube_vertices)
+        print("\ncube_edges", cube_edges)
+
+        self.vertices = wall_vertices
+        self.line_vertices = wall_line_vertices
+        self.edges = edges
+        self.surfaces_vertices = surfaces_vertices
+        self.surface_edges = surface_edges
+        self.cube_vertices = cube_edges
+        self.cube_edges = cube_edges
+
+        print("\n\n\n")
 
 class Display:
     """Display class for the game Dimensional Maze.
@@ -43,6 +167,10 @@ class Display:
         self.calculate_visible_dimensions()
         self.sub_walls = self.create_sub_walls(walls,
                                                int(self.position.size - 1))
+        self.n_cubes = []
+        
+        for i in range(3, len(position)+1):
+            self.n_cubes.append(HyperCube(i))
 
         #Initialise pygame display
         #TODO: Understand this section and make it editable for player.
@@ -97,12 +225,9 @@ class Display:
             self.calculate_visible_dimensions()
             self.sub_walls = self.create_sub_walls(maze.walls,
                                                    self.position.size - 1)
-            if len(self.visible_dimensions) == 3:
-                self.draw_3D(maze)
-            else:
-                self.draw_4D(maze)
+            self.draw_3D(maze)
 
-    def create_sub_walls(self, walls, level):
+    def create_sub_walls(self, walls, level, position = []):
         """Create a multi-dimensional array which is a subset of the 
         walls passed in representing what is visible to the player.
 
@@ -121,17 +246,17 @@ class Display:
         if level in self.visible_dimensions:
             if level > 0:
                 for i in range(0, len(walls)):
-                    sub_walls.append(self.create_sub_walls(walls[i],
-                                                           level - 1))
+                    sub_walls = sub_walls + self.create_sub_walls(walls[i],
+                                                           level - 1, [i] + position)
             else:
                 for i in range(0, len(walls)):
-                    sub_walls.append(walls[i])
+                    sub_walls = sub_walls + [(walls[i], [i] + position)]
         else:
             wall_index = int(round(self.position[level]))
             if level > 0:
-                sub_walls = self.create_sub_walls(walls[wall_index], level - 1)
+                sub_walls = sub_walls + self.create_sub_walls(walls[wall_index], level - 1, [wall_index] + position)
             else:
-                sub_walls = walls[wall_index]
+                sub_walls = sub_walls + [(walls[wall_index], [wall_index] + position)]
 
         return sub_walls
 
@@ -154,17 +279,24 @@ class Display:
         self.visible_dimensions.sort()
 
 
-    def goal_check(self, goal, position):
+    def goal_check(self, goal, position, cube_pos):
+        "TODO: Change this description"
         """Check whether the goal is visible to the player.
 
         Keyword arguments:
         goal -- The position of the goal.
         position -- The position of the player.
         """
+
+        count = 0
         for i in range(0, len(goal)):
             if i not in self.visible_dimensions:
                 if position[i] != goal[i]:
                     return False
+            elif cube_pos[count] != goal[i]:
+                return False
+            else:
+                count += 1
         return True
 
 
@@ -174,17 +306,35 @@ class Display:
         red = 0
         blue = 0
         green = 0
-        for i in range(0, len(position)):
-            if i in sub_dimensions:
-                if i % 3 == 0:
-                    red = red + cube_pos[count] / dimension_lengths[count]
-                elif i % 3 == 1:
-                    green = green + cube_pos[count] / dimension_lengths[count]
-                elif i % 3 == 2:
-                    blue = blue + cube_pos[count] / dimension_lengths[count]
-                count = count + 1
 
-        return [red, green, blue]
+        red_total = 1
+        blue_total = 1
+        green_total = 1
+
+        for i in range(0, len(position)):
+            if i % 3 == 0:
+                if i in sub_dimensions:
+                    red = red + cube_pos[count] * red_total
+                    count = count + 1
+                else:
+                    red = red + position[i] * red_total
+                red_total *= dimension_lengths[i]
+            elif i % 3 == 1:
+                if i in sub_dimensions:
+                    green = green + cube_pos[count] * green_total
+                    count = count + 1
+                else:
+                    green = green + position[i] * green_total
+                green_total *= dimension_lengths[i]
+            elif i % 3 == 2:
+                if i in sub_dimensions:
+                    blue = blue + cube_pos[count] * blue_total
+                    count = count + 1
+                else:
+                    blue = blue + position[i] * blue_total
+                blue_total *= dimension_lengths[i]
+
+        return [red / red_total, green / green_total, blue / blue_total]
 
 
     def draw_3D(self, maze):
@@ -195,153 +345,188 @@ class Display:
         maze -- The object containing all the game state information.
         """
 
+
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-        sub_orientation = np.identity(3)
-        sub_orientation[0][0] = self.orientation[0][self.visible_dimensions[0]]
-        sub_orientation[0][1] = self.orientation[0][self.visible_dimensions[1]]
-        sub_orientation[0][2] = self.orientation[0][self.visible_dimensions[2]]
-        sub_orientation[1][0] = self.orientation[1][self.visible_dimensions[0]]
-        sub_orientation[1][1] = self.orientation[1][self.visible_dimensions[1]]
-        sub_orientation[1][2] = self.orientation[1][self.visible_dimensions[2]]
-        sub_orientation[2][0] = self.orientation[2][self.visible_dimensions[0]]
-        sub_orientation[2][1] = self.orientation[2][self.visible_dimensions[1]]
-        sub_orientation[2][2] = self.orientation[2][self.visible_dimensions[2]]
+        dim_num = len(self.visible_dimensions)
 
-        vertices = ((0.9999, 0.9999, 0.9999), (0.9999, 0.9999, -0.9999),
-                    (0.9999, -0.9999, 0.9999), (0.9999, -0.9999, -0.9999),
-                    (-0.9999, 0.9999, 0.9999), (-0.9999, 0.9999, -0.9999),
-                    (-0.9999, -0.9999, 0.9999), (-0.9999, -0.9999, -0.9999))
+        sub_orientation = np.zeros((dim_num, dim_num))
 
-        line_vertices = ((0.999, 0.999, 0.999), (0.999, 0.999, -0.999),
-                    (0.999, -0.999, 0.999), (0.999, -0.999, -0.999),
-                    (-0.999, 0.999, 0.999), (-0.999, 0.999, -0.999),
-                    (-0.999, -0.999, 0.999), (-0.999, -0.999, -0.999))
+        rows = []
 
-        edges = ((0, 1), (0, 2), (0, 4), (1, 3), (1, 5), (2, 3),
-                 (2, 6), (3, 7), (4, 5), (4, 6), (5, 7), (6, 7))
+        for i in self.visible_dimensions:
+            for j in range(0, len(self.orientation)):
+                if abs(self.orientation[j][i]) >= TOLERANCE:
+                    if j not in rows:
+                        rows.append(j)
 
-        surfaces = ((0, 1, 3, 2), (4, 5, 7, 6), (0, 1, 5, 4),
-                    (2, 3, 7, 6), (0, 2, 6, 4), (1, 3, 7, 5))
+        rows.sort()
+
+        for i in range(0, len(rows)):
+            for j in range(0, len(rows)):
+                sub_orientation[i][j] = self.orientation[rows[i]][self.visible_dimensions[j]]
+
+        n_cube = self.n_cubes[dim_num-3]
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_LINE_SMOOTH)
         glEnable(GL_POLYGON_SMOOTH)
-        glLineWidth(5.0);
+        glLineWidth(5.0)
 
-        for k in range(0, len(self.sub_walls)):
-            for j in range(0, len(self.sub_walls[0])):
-                for i in range(0, len(self.sub_walls[0][0])):
+        for cube in self.sub_walls:
+            for index in range(0, 2 * dim_num):
+                dim = self.visible_dimensions[int(index / 2)]
+                even = index & 1
 
-                    translated_vertices = np.array([[0, 0, 0]] * 8, float)
-                    rotated_vertices = np.array([[0, 0, 0]] * 8, float)
+                line_vertices = n_cube.line_vertices[index]
+                vertices = n_cube.vertices[index]
+                edges = n_cube.edges
+                surfaces_vertices = n_cube.surfaces_vertices
+                surfaces_edges = n_cube.surface_edges
+                cubes_vertices = n_cube.cube_vertices
+                cubes_edges = n_cube.cube_edges
 
-                    t_x = 2 * (i - self.position[self.visible_dimensions[0]])
-                    t_y = 2 * (j - self.position[self.visible_dimensions[1]])
-                    t_z = 2 * (k - self.position[self.visible_dimensions[2]])
 
-                    for vertex in range(0, len(vertices)):
 
-                        translated_vertices[vertex] = (
-                            vertices[vertex][0] + t_x,
-                            vertices[vertex][1] + t_y,
-                            vertices[vertex][2] + t_z)
+                translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
+                rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
 
-                        rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-                        rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+                coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
+
+                t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
+
+                if cube[0] & int(math.pow(2, (dim * 2 + even))):
+
+                    for i in range(0, len(vertices)):
+                        translated_vertices[i] = [v + t for (v, t) in zip(vertices[i], t_coords)]
+
+                        rotated_vertices[i] = np.matmul(sub_orientation, translated_vertices[i])
+                        if dim_num == 3:
+                            rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
 
                     glBegin(GL_QUADS)
 
-                    [red, green, blue] = self.calculate_colours(maze.player.position, [i, j, k], self.visible_dimensions, maze.dimension_lengths)
-                    glColor3fv((red, green, blue))
+                    if self.goal_check(maze.goal, maze.player.position, coords):
+                        glColor3fv((1, 1, 1))
+                    else:
+                        [red, green, blue] = self.calculate_colours(maze.player.position, coords, self.visible_dimensions, maze.dimension_lengths)
+                        glColor3fv((red, green, blue))
 
-                    for index in range(0, len(surfaces)):
-                        dim = self.visible_dimensions[int(index / 2)]
-                        even = index % 2
-                        if self.sub_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
-                            
-                            for vertex in surfaces[index]:
+                    if dim_num == 3:
+                        for surfaces in surfaces_vertices:
+                            for vertex in surfaces:
                                 glVertex3fv(rotated_vertices[vertex])
+                    else:
+                        [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
+
+                        if len(intersecting_vertices) > 0:
+                            for vertex in range(0, len(intersecting_vertices)):
+                                intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
+
+                            vertex_numbers = []
+                            for vertex in cubes_vertices[0]:
+                                if vertex in edge_numbers:
+                                    vertex_numbers.append(edge_numbers.index(vertex))
+                            vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
+
+                            for vertex in vertex_numbers:
+                                glVertex3fv(intersecting_vertices[vertex])
 
                     glEnd()
 
-                    glBegin(GL_LINES)
 
-                    for vertex in range(0, len(vertices)):
-                        translated_vertices[vertex] = (
-                            line_vertices[vertex][0] + t_x,
-                            line_vertices[vertex][1] + t_y,
-                            line_vertices[vertex][2] + t_z)
+                for i in range(0, len(line_vertices)):
+                    translated_vertices[i] = [v + t for (v, t) in zip(line_vertices[i], t_coords)]
 
-                        rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+                    rotated_vertices[i] = np.matmul(sub_orientation, translated_vertices[i])
+                    if dim_num == 3:
+                        rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
 
-                        rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+                # glBegin(GL_LINES)
 
-                        #rotated_vertices[vertex] = rotation_matrix.dot(
-                        #    translated_vertices[vertex])
+                # glColor3fv((0, 0, 0))
 
-                    for edge in edges:
-                        for vertex in edge:
-                            glColor3fv((0, 0, 0))
-                            glVertex3fv(rotated_vertices[vertex])
+                # if dim_num == 3:
+                #     for edge in edges:
+                #         for vertex in edge:
+                #             glVertex3fv(rotated_vertices[vertex])
+                # else:
+                #     [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
 
-                    glEnd()
+                #     if len(intersecting_vertices) > 0:
 
-        [i, j, k] = [maze.goal[self.visible_dimensions[0]],
-                     maze.goal[self.visible_dimensions[1]],
-                     maze.goal[self.visible_dimensions[2]]]
+                #         for vertex in range(0, len(intersecting_vertices)):
+                #             intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
 
-        translated_vertices = np.array([[0, 0, 0]] * 8, float)
-        rotated_vertices = np.array([[0, 0, 0]] * 8, float)
+                #         vertex_numbers = []
+                #         for vertex in surfaces_vertices[0]:
+                #             if vertex in edge_numbers:
+                #                 vertex_numbers.append(edge_numbers.index(vertex))                                        
 
-        t_x = 2 * (i - self.position[self.visible_dimensions[0]])
-        t_y = 2 * (j - self.position[self.visible_dimensions[1]])
-        t_z = 2 * (k - self.position[self.visible_dimensions[2]])
+                #         if len(vertex_numbers) == 2:
+                #             for vertex in vertex_numbers:
+                #                 glVertex3fv(intersecting_vertices[vertex])
 
-        for vertex in range(0, len(vertices)):
+                # glEnd()
 
-            translated_vertices[vertex] = (
-                vertices[vertex][0] * 0.5 + t_x,
-                vertices[vertex][1] * 0.5 + t_y,
-                vertices[vertex][2] * 0.5 + t_z)
 
-            rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-            rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
 
-        if self.goal_check(maze.goal, maze.player.position):
 
-            glBegin(GL_QUADS)
+        # [i, j, k] = [maze.goal[self.visible_dimensions[0]],
+        #              maze.goal[self.visible_dimensions[1]],
+        #              maze.goal[self.visible_dimensions[2]]]
 
-            glColor3fv((1, 1, 1))
+        # translated_vertices = np.array([[0, 0, 0]] * 8, float)
+        # rotated_vertices = np.array([[0, 0, 0]] * 8, float)
 
-            for index in range(0, len(surfaces)):
-                dim = self.visible_dimensions[int(index / 2)]
-                even = index % 2
-                #if self.sub_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
+        # t_x = 2 * (i - self.position[self.visible_dimensions[0]])
+        # t_y = 2 * (j - self.position[self.visible_dimensions[1]])
+        # t_z = 2 * (k - self.position[self.visible_dimensions[2]])
 
-                for vertex in surfaces[index]:
-                    glVertex3fv(rotated_vertices[vertex] + 0.001)
+        # for vertex in range(0, len(vertices)):
 
-            glEnd()
+        #     translated_vertices[vertex] = (
+        #         vertices[vertex][0] * 0.5 + t_x,
+        #         vertices[vertex][1] * 0.5 + t_y,
+        #         vertices[vertex][2] * 0.5 + t_z)
 
-            glBegin(GL_LINES)
+        #     rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+        #     rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
 
-            for vertex in range(0, len(vertices)):
-                translated_vertices[vertex] = (
-                    line_vertices[vertex][0] * 0.5 + t_x,
-                    line_vertices[vertex][1] * 0.5 + t_y,
-                    line_vertices[vertex][2] * 0.5 + t_z)
+        # if self.goal_check(maze.goal, maze.player.position):
 
-                rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+        #     glBegin(GL_QUADS)
 
-                rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+        #     glColor3fv((1, 1, 1))
 
-            for edge in edges:
-                for vertex in edge:
-                    glColor3fv((0, 0, 0))
-                    glVertex3fv(rotated_vertices[vertex])
+        #     for index in range(0, len(surfaces)):
+        #         dim = self.visible_dimensions[int(index / 2)]
+        #         even = index % 2
+        #         #if self.sub_walls[k][j][i] & int(math.pow(2, (dim * 2 + even))):
 
-            glEnd()
+        #         for vertex in surfaces[index]:
+        #             glVertex3fv(rotated_vertices[vertex] + 0.001)
+
+        #     glEnd()
+
+        #     glBegin(GL_LINES)
+
+        #     for vertex in range(0, len(vertices)):
+        #         translated_vertices[vertex] = (
+        #             line_vertices[vertex][0] * 0.5 + t_x,
+        #             line_vertices[vertex][1] * 0.5 + t_y,
+        #             line_vertices[vertex][2] * 0.5 + t_z)
+
+        #         rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
+
+        #         rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
+
+        #     for edge in edges:
+        #         for vertex in edge:
+        #             glColor3fv((0, 0, 0))
+        #             glVertex3fv(rotated_vertices[vertex])
+
+        #     glEnd()
 
         pygame.display.flip()
 
@@ -351,21 +536,27 @@ class Display:
         count = 0
 
         for edge in edges:
-            vertex_1 = vertices[edge[0]]
-            vertex_2 = vertices[edge[1]]
-            if vertex_1[3] == 0:
-                intersecting_vertices.append([vertex_1[0], vertex_1[1], vertex_1[2]])
+            v_1 = vertices[edge[0]]
+            v_2 = vertices[edge[1]]
+            if sum([coord for coord in v_1[3:]]) == 0:
+                intersecting_vertices.append([v_1[0], v_1[1], v_1[2]])
                 edge_numbers.append(count)
-            elif vertex_2[3] == 0:
-                intersecting_vertices.append([vertex_2[0], vertex_2[1], vertex_2[2]])
+            elif sum([coord for coord in v_1[3:]]) == 0:
+                intersecting_vertices.append([v_2[0], v_2[1], v_2[2]])
                 edge_numbers.append(count)
-            elif (vertex_1[3] < 0 and vertex_2[3] > 0) or (vertex_1[3] > 0 and vertex_2[3] < 0):
-                ratio = abs(float(vertex_1[3] / (vertex_1[3] - vertex_2[3])))
-                x = vertex_1[0] - (vertex_1[0] - vertex_2[0]) * ratio
-                y = vertex_1[1] - (vertex_1[1] - vertex_2[1]) * ratio
-                z = vertex_1[2] - (vertex_1[2] - vertex_2[2]) * ratio
-                intersecting_vertices.append([x, y, z])
-                edge_numbers.append(count)
+            else:
+                can_hit = [(c_1 < 0 and c_2 > 0) or (c_1 > 0 and c_2 < 0)
+                        for (c_1, c_2) in zip(v_1[3:], v_2[3:])]
+                if all(can_hit):
+                    ratio = abs(float(v_1[3] / (v_1[3] - v_2[3])))
+                    crosses = [abs(c_1 - (c_1 - c_2) * ratio) <= 1e-6
+                            for (c_1, c_2) in zip(v_1[4:], v_2[4:])]
+                    if all(crosses):
+                        x = v_1[0] - (v_1[0] - v_2[0]) * ratio
+                        y = v_1[1] - (v_1[1] - v_2[1]) * ratio
+                        z = v_1[2] - (v_1[2] - v_2[2]) * ratio
+                        intersecting_vertices.append([x, y, z])
+                        edge_numbers.append(count)
             count = count + 1
         return [np.array(intersecting_vertices), edge_numbers]
 
@@ -374,6 +565,8 @@ class Display:
             return []
 
         new_vertex_numbers = [vertex_numbers[0]]
+
+        dist = [[[0]] * len(vertex_numbers)] * len(vertex_numbers)
 
         dist_0_1 = abs(intersecting_vertices[vertex_numbers[0]][0] - intersecting_vertices[vertex_numbers[1]][0]) + \
                    abs(intersecting_vertices[vertex_numbers[0]][1] - intersecting_vertices[vertex_numbers[1]][1]) + \
@@ -427,179 +620,3 @@ class Display:
                 new_vertex_numbers.append(vertex_numbers[1])
 
         return new_vertex_numbers
-
-    def draw_4D(self, maze):
-        """TODO: Complete Docstring: draw Function"""
-
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-
-        sub_dimensions = self.visible_dimensions
-
-        sub_orientation = np.identity(4)
-        sub_orientation[0][0] = self.orientation[sub_dimensions[0]][sub_dimensions[0]]
-        sub_orientation[0][1] = self.orientation[sub_dimensions[0]][sub_dimensions[1]]
-        sub_orientation[0][2] = self.orientation[sub_dimensions[0]][sub_dimensions[2]]
-        sub_orientation[0][3] = self.orientation[sub_dimensions[0]][sub_dimensions[3]]
-        sub_orientation[1][0] = self.orientation[sub_dimensions[1]][sub_dimensions[0]]
-        sub_orientation[1][1] = self.orientation[sub_dimensions[1]][sub_dimensions[1]]
-        sub_orientation[1][2] = self.orientation[sub_dimensions[1]][sub_dimensions[2]]
-        sub_orientation[1][3] = self.orientation[sub_dimensions[1]][sub_dimensions[3]]
-        sub_orientation[2][0] = self.orientation[sub_dimensions[2]][sub_dimensions[0]]
-        sub_orientation[2][1] = self.orientation[sub_dimensions[2]][sub_dimensions[1]]
-        sub_orientation[2][2] = self.orientation[sub_dimensions[2]][sub_dimensions[2]]
-        sub_orientation[2][3] = self.orientation[sub_dimensions[2]][sub_dimensions[3]]
-        sub_orientation[3][0] = self.orientation[sub_dimensions[3]][sub_dimensions[0]]
-        sub_orientation[3][1] = self.orientation[sub_dimensions[3]][sub_dimensions[1]]
-        sub_orientation[3][2] = self.orientation[sub_dimensions[3]][sub_dimensions[2]]
-        sub_orientation[3][3] = self.orientation[sub_dimensions[3]][sub_dimensions[3]]
-
-        vertices = ((0.9999, 0.9999, 0.9999, 0.9999), (0.9999, 0.9999, -0.9999, 0.9999),
-                    (0.9999, -0.9999, 0.9999, 0.9999), (0.9999, -0.9999, -0.9999, 0.9999),
-                    (-0.9999, 0.9999, 0.9999, 0.9999), (-0.9999, 0.9999, -0.9999, 0.9999),
-                    (-0.9999, -0.9999, 0.9999, 0.9999), (-0.9999, -0.9999, -0.9999, 0.9999),
-                    (0.9999, 0.9999, 0.9999, -0.9999), (0.9999, 0.9999, -0.9999, -0.9999),
-                    (0.9999, -0.9999, 0.9999, -0.9999), (0.9999, -0.9999, -0.9999, -0.9999),
-                    (-0.9999, 0.9999, 0.9999, -0.9999), (-0.9999, 0.9999, -0.9999, -0.9999),
-                    (-0.9999, -0.9999, 0.9999, -0.9999), (-0.9999, -0.9999, -0.9999, -0.9999))
-
-        line_vertices = ((0.999, 0.999, 0.999, 0.999), (0.999, 0.999, -0.999, 0.999),
-                    (0.999, -0.999, 0.999, 0.999), (0.999, -0.999, -0.999, 0.999),
-                    (-0.999, 0.999, 0.999, 0.999), (-0.999, 0.999, -0.999, 0.999),
-                    (-0.999, -0.999, 0.999, 0.999), (-0.999, -0.999, -0.999, 0.999),
-                    (0.999, 0.999, 0.999, -0.999), (0.999, 0.999, -0.999, -0.999),
-                    (0.999, -0.999, 0.999, -0.999), (0.999, -0.999, -0.999, -0.999),
-                    (-0.999, 0.999, 0.999, -0.999), (-0.999, 0.999, -0.999, -0.999),
-                    (-0.999, -0.999, 0.999, -0.999), (-0.999, -0.999, -0.999, -0.999))
-
-        edges = ((0, 1), (0, 2), (0, 4), (1, 3), (1, 5), (2, 3),
-                 (2, 6), (3, 7), (4, 5), (4, 6), (5, 7), (6, 7),
-                 (8, 9), (8, 10), (8, 12), (9, 11), (9, 13), (10, 11),
-                 (10, 14), (11, 15), (12, 13), (12, 14), (13, 15), (14, 15),
-                 (0, 8), (1, 9), (2, 10), (3, 11), (4, 12), (5, 13), (6, 14), (7, 15))
-
-        surfaces = ((0, 1, 3, 5), (0, 2, 4, 8), (1, 2, 6, 9),
-                    (5, 6, 7, 11), (8, 9, 10, 11), (3, 4, 7, 10),
-                    (12, 13, 15, 17), (12, 14, 16, 20), (13, 14, 18, 21),
-                    (17, 18, 19, 23), (20, 21, 22, 23), (15, 16, 19, 22),
-                    (0, 12, 24, 25), (1, 13, 24, 26), (2, 14, 24, 28),
-                    (3, 15, 25, 27), (4, 16, 25, 29), (5, 17, 26, 27),
-                    (6, 18, 26, 30), (7, 19, 27, 31), (8, 20, 28, 29),
-                    (9, 21, 28, 30), (10, 22, 29, 31), (11, 23, 30, 31))
-
-        cubes = ((0, 3, 5, 1, 12, 15, 17, 13, 24, 25, 26, 27),
-                 (8, 10, 11, 9, 20, 22, 23, 21, 28, 29, 30, 31),
-                 (0, 4, 8, 2, 12, 16, 20, 14, 24, 25, 29, 28),
-                 (6, 11, 7, 5, 18, 23, 19, 17, 26, 27, 31, 30),
-                 (1, 6, 9, 2, 13, 18, 21, 14, 24, 26, 28, 30),
-                 (3, 7, 10, 4, 15, 19, 22, 16, 25, 27, 29, 31),
-                 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11),
-                 (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23))
-
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_LINE_SMOOTH)
-        glEnable(GL_POLYGON_SMOOTH)
-        glLineWidth(5.0);
-
-        for l in range(0, len(self.sub_walls)):
-            for k in range(0, len(self.sub_walls[0])):
-                for j in range(0, len(self.sub_walls[0][0])):
-                    for i in range(0, len(self.sub_walls[0][0][0])):
-
-                        translated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
-                        rotated_vertices = np.array([[0, 0, 0, 0]] * 16, float)
-
-                        t_x = 2 * (i - self.position[sub_dimensions[0]])
-                        t_y = 2 * (j - self.position[sub_dimensions[1]])
-                        t_z = 2 * (k - self.position[sub_dimensions[2]])
-                        t_w = 2 * (l - self.position[sub_dimensions[3]])
-
-                        #t_x = 2 * (i - self.position[0])
-                        #t_y = 2 * (j - self.position[1])
-                        #t_z = 2 * (k - self.position[2])
-
-                        for vertex in range(0, len(vertices)):
-
-                            translated_vertices[vertex] = (
-                                vertices[vertex][0] + t_x,
-                                vertices[vertex][1] + t_y,
-                                vertices[vertex][2] + t_z,
-                                vertices[vertex][3] + t_w)
-
-                            rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-                            #rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
-
-                            #rotated_vertices[vertex] = rotation_matrix.dot(
-                            #    translated_vertices[vertex])
-
-                        [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
-
-                        if len(intersecting_vertices) > 0:
-
-                            for vertex in range(0, len(intersecting_vertices)):
-                                intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
-
-                            glBegin(GL_QUADS)
-
-                            [red, green, blue] = self.calculate_colours(maze.player.position, [i, j, k, l], sub_dimensions, maze.dimension_lengths)
-                            """red = i / maze.dimension_lengths[0]
-                            green =  j / maze.dimension_lengths[1]
-                            blue = k / maze.dimension_lengths[2]"""
-                            glColor3fv((red, green, blue))
-
-                            if self.goal_check(maze.goal, maze.player.position):
-                                glColor3fv((1, 1, 1))
-
-                            for index in range(0, len(cubes)):
-                                dim = self.visible_dimensions[int(index / 2)]
-                                even = index % 2
-                                if self.sub_walls[l][k][j][i] & int(math.pow(2, (dim * 2 + even))):
-                                    vertex_numbers = []
-                                    for vertex in cubes[index]:
-                                        if vertex in edge_numbers:
-                                            vertex_numbers.append(edge_numbers.index(vertex))
-                                    
-                                    vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
-
-                                    for vertex in vertex_numbers:
-                                        glVertex3fv(intersecting_vertices[vertex])
-
-                            glEnd()
-
-                        glBegin(GL_LINES)
-                        
-                        glColor3fv((0, 0, 0))
-
-                        for vertex in range(0, len(line_vertices)):
-                            translated_vertices[vertex] = (
-                                line_vertices[vertex][0] + t_x,
-                                line_vertices[vertex][1] + t_y,
-                                line_vertices[vertex][2] + t_z,
-                                line_vertices[vertex][3] + t_w)
-
-                            rotated_vertices[vertex] = np.matmul(sub_orientation, translated_vertices[vertex])
-
-                        [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
-
-                            #rotated_vertices[vertex] = [rotated_vertices[vertex][1],rotated_vertices[vertex][2],-rotated_vertices[vertex][0]]
-
-                            #rotated_vertices[vertex] = rotation_matrix.dot(
-                            #    translated_vertices[vertex])
-
-                        if len(intersecting_vertices) > 0:
-
-                            for vertex in range(0, len(intersecting_vertices)):
-                                intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
-
-                            for index in range(0, len(surfaces)):
-                                vertex_numbers = []
-                                for vertex in surfaces[index]:
-                                    if vertex in edge_numbers:
-                                        vertex_numbers.append(edge_numbers.index(vertex))                                        
-
-                                if len(vertex_numbers) == 2:
-                                    for vertex in vertex_numbers:
-                                        glVertex3fv(intersecting_vertices[vertex])
-
-                        glEnd()
-
-        pygame.display.flip()

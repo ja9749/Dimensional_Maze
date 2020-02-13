@@ -15,6 +15,8 @@ from maze import Maze
 from display import Display
 from dimensional_maze_library import *
 
+import time
+
 #Module level logger. Outputs debug info to external file.
 logging.basicConfig(filename='log.txt', filemode='w', level=logging.DEBUG)
 logger = logging.getLogger('dimensional_maze')
@@ -78,7 +80,9 @@ def play_game(maze):
 
                     #If moving the player is successful, draw the move.
                     if maze.move_player(dimension, direction):
+                        start = time.time()
                         display.draw_move(dimension, direction, maze)
+                        print("move time:", time.time() - start)
 
                     break
 
@@ -99,7 +103,9 @@ def play_game(maze):
 
                     #Rotate player and draw that rotation.
                     maze.player.rotate(dimension, direction)
+                    start = time.time()
                     display.draw_rotate(dimension, direction, maze)
+                    print("rotate time:", time.time() - start)
                     break
 
 

@@ -34,7 +34,7 @@ def play_game(maze):
     """
     #Initialise display object and draw maze.
     display = Display(
-        maze.player.position, maze.player.orientation, maze.walls)
+        maze.player.position, maze.player.orientation, maze.walls, maze)
     display.draw_3D(maze)
 
     #Variable signalling when to quit the game

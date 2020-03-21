@@ -38,10 +38,6 @@ class HyperCube:
                     wall_vertices[i].append(vertex)
                     wall_line_vertices[i].append(vertex)
 
-        print("\nline_vertices", line_vertices)
-        print("\nvertices", temp_vertices)
-        print("\nwall_vertices", wall_vertices)
-
         wall_edges = []
         wall_surfaces_vertices = []
         wall_surface_edges = []
@@ -140,7 +136,6 @@ class HyperCube:
             and np.sum(np.array(vertices[o]) != np.array(vertices[k])) == 1 \
             and np.sum(np.array(vertices[o]) != np.array(vertices[p])) == 1:
                 count += 1
-                print(count)
                 cube_vertices.append((i, j, k, l, m, n, o, p))
                 cube_edges.append((
                     edges.index((i, j)),
@@ -157,12 +152,6 @@ class HyperCube:
                     edges.index((o, p)),
                 ))
 
-        print("\nedges", edges)
-        print("\nsurfaces_vertices", surfaces_vertices)
-        print("\nsurfaces_edges", surface_edges)
-        print("\ncube_vertices", cube_vertices)
-        print("\ncube_edges", cube_edges)
-
         self.vertices = wall_vertices
         self.line_vertices = line_vertices
         self.edges = edges
@@ -174,7 +163,6 @@ class HyperCube:
         self.cube_vertices = cube_edges
         self.cube_edges = cube_edges
 
-        print("\n\n\n")
 
 class Display:
     """Display class for the game Dimensional Maze.
@@ -219,7 +207,7 @@ class Display:
         glTranslatef(0.0, 0.0, -1.0)
         glRotatef(20, 0, 0, 0)
 
-    def draw_move(self, dimension, direction, maze):
+    def draw_move(self, dimension, direction):
         """Draw the animation of a the player moving through the maze.
 
         The maze is drawn a number of times with incremental changes in
@@ -235,9 +223,9 @@ class Display:
             self.position[dimension] += direction / MOVE_FRAMES
             self.sub_walls = self.create_sub_walls(self.walls,
                                                    self.position.size - 1)
-            self.draw_3D(maze)
+            self.draw()
 
-    def draw_rotate(self, dimensions, direction, maze):
+    def draw_rotate(self, dimensions, direction):
         """Draw the animation of a the player rotating in the maze.
 
         The maze is drawn a number of times with incremental changes in
@@ -256,14 +244,19 @@ class Display:
         rotation_matrix[dimensions[0]][dimensions[0]] = math.cos(angle)
         rotation_matrix[dimensions[1]][dimensions[1]] = math.cos(angle)
 
-        for _ in range(0, ROTATE_FRAMES):
-            self.orientation = np.matmul(self.orientation, rotation_matrix)
-            self.calculate_visible_dimensions()
-            self.sub_walls = self.create_sub_walls(self.walls,
-                                                   self.position.size - 1)
-            self.draw_3D(maze)
-            # input()
+        self.orientation = np.matmul(self.orientation, rotation_matrix)
+        self.calculate_visible_dimensions()
+        self.sub_walls = self.create_sub_walls(self.walls,
+                                               self.position.size - 1)
 
+        for _ in range(1, ROTATE_FRAMES):
+            self.draw()
+            self.orientation = np.matmul(self.orientation, rotation_matrix)
+
+        self.calculate_visible_dimensions()
+        self.sub_walls = self.create_sub_walls(self.walls,
+                                               self.position.size - 1)
+        self.draw()
 
     def create_wall_info(self, walls, level, dimension_lengths, goal, position = []):
         """Create a multi-dimensional array which is a subset of the 
@@ -385,14 +378,12 @@ class Display:
         return [red / red_total, green / green_total, blue / blue_total]
 
 
-    def draw_3D(self, maze):
+    def draw(self):
         """Transform, Colour and Render the maze and all its elements
         according to the game state.
 
         Keyword arguments:
-        maze -- The object containing all the game state information.
         """
-
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
@@ -430,6 +421,8 @@ class Display:
         cubes_vertices = n_cube.cube_vertices
         cubes_edges = n_cube.cube_edges
 
+        glBegin(GL_QUADS)
+
         for cube in self.sub_walls:
             coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
             (red, green, blue) = cube[2]
@@ -452,7 +445,6 @@ class Display:
                         if dim_num == 3:
                             rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
 
-                    glBegin(GL_QUADS)
 
                     glColor3fv((red, green, blue))
 
@@ -476,15 +468,17 @@ class Display:
                             for vertex in vertex_numbers:
                                 glVertex3fv(intersecting_vertices[vertex])
 
-                    glEnd()
+        glEnd()
+
+        glBegin(GL_LINES)
+        glColor3fv((0, 0, 0))
+        for cube in self.sub_walls:
+            coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
 
             translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
             rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
 
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
-
-            glBegin(GL_LINES)
-            glColor3fv((0, 0, 0))
 
             for i in range(0, len(line_vertices)):
                 translated_vertices[i] = [v + t for (v, t) in zip(line_vertices[i], t_coords)]
@@ -514,12 +508,7 @@ class Display:
                             for vertex in vertex_numbers:
                                 glVertex3fv(intersecting_vertices[vertex])
 
-                # input()
-
-                    # vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
-
-            glEnd()
-
+        glEnd()
 
         pygame.display.flip()
 

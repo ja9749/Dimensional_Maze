@@ -35,7 +35,7 @@ def play_game(maze):
     #Initialise display object and draw maze.
     display = Display(
         maze.player.position, maze.player.orientation, maze.walls, maze)
-    display.draw_3D(maze)
+    display.draw()
 
     #Variable signalling when to quit the game
     game_exit = False
@@ -81,7 +81,7 @@ def play_game(maze):
                     #If moving the player is successful, draw the move.
                     if maze.move_player(dimension, direction):
                         start = time.time()
-                        display.draw_move(dimension, direction, maze)
+                        display.draw_move(dimension, direction)
                         print("move time:", time.time() - start)
 
                     break
@@ -104,7 +104,7 @@ def play_game(maze):
                     #Rotate player and draw that rotation.
                     maze.player.rotate(dimension, direction)
                     start = time.time()
-                    display.draw_rotate(dimension, direction, maze)
+                    display.draw_rotate(dimension, direction)
                     print("rotate time:", time.time() - start)
                     break
 

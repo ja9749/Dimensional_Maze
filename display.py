@@ -421,22 +421,23 @@ class Display:
         cubes_vertices = n_cube.cube_vertices
         cubes_edges = n_cube.cube_edges
 
+        translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
+        rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
+
         glBegin(GL_QUADS)
 
         for cube in self.sub_walls:
             coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
-            (red, green, blue) = cube[2]
+            t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
+            glColor3fv(cube[2])
 
-            for index in range(0, 2 * dim_num):
-                dim = self.visible_dimensions[int(index / 2)]
-                even = index & 1
+            for index in range(0, dim_num << 1):
+                dim = self.visible_dimensions[int(index >> 1)]
+                parity = index & 1
 
-                if cube[0] & int(math.pow(2, (dim * 2 + even))):
+                if cube[0] & 1 << ((dim << 1) + parity):
                     vertices = n_cube.vertices[index]
-                    translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
-                    rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
 
-                    t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
 
                     for i in range(0, len(vertices)):
                         translated_vertices[i] = [v + t for (v, t) in zip(vertices[i], t_coords)]
@@ -444,9 +445,6 @@ class Display:
                         rotated_vertices[i] = np.matmul(sub_orientation, translated_vertices[i])
                         if dim_num == 3:
                             rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
-
-
-                    glColor3fv((red, green, blue))
 
                     if dim_num == 3:
                         for surfaces in surfaces_vertices:
@@ -474,9 +472,6 @@ class Display:
         glColor3fv((0, 0, 0))
         for cube in self.sub_walls:
             coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
-
-            translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
-            rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
 
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
 

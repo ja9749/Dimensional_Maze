@@ -5,141 +5,100 @@ class Hypercube:
     def __init__(self, dim_num):
         print("\ndim_num", dim_num)
 
-        line_vertices = list(itertools.product([0.999, -0.999], repeat=dim_num))
-        temp_vertices = list(itertools.product([0.9999, -0.9999], repeat=dim_num))
+        # line_vertices = list(itertools.product([0.999, -0.999], repeat=dim_num))
+        vertices = list(itertools.product([0.9999, -0.9999], repeat=dim_num))
+        inner_vertices = list(itertools.product([-0.0009, 0.0009], repeat=dim_num))
 
         wall_vertices = []
-        wall_line_vertices = []
-        for i in range(0, 2 * dim_num):
+        for i in range(2 * dim_num):
             wall_vertices.append([])
-            wall_line_vertices.append([])
-            for vertex in temp_vertices:
+            for j in range(len(vertices)):
+                vertex = vertices[j]
                 if ((i & 1) and (vertex[i >> 1] < 0)) \
                 or (not (i & 1) and (vertex[i >> 1] > 0)):
-                    wall_vertices[i].append(vertex)
-                    wall_line_vertices[i].append(vertex)
+                    wall_vertices[i].append(j)
 
         wall_edges = []
-        wall_surfaces_vertices = []
-        wall_surface_edges = []
-        wall_cube_vertices = []
-        wall_cube_edges = []
-        vertices = wall_vertices[0]
+        wall_surfaces = []
+        wall_cubes = []
 
-        edges = []
-        line_edges = []
-        surfaces_vertices = []
-        surface_edges = []
-        line_surfaces_vertices = []
-        line_surface_edges = []
-        cube_vertices = []
-        cube_edges = []
+        sample = wall_vertices[0]
 
-        edge_combo = [(i, j) for i in range(0, len(vertices))
-                             for j in range(i + 1, len(vertices))]
+        edge_combo = [(i, j) for i in range(0, len(sample))
+                             for j in range(i + 1, len(sample))]
+
+        sample_edges = []
 
         for (i, j) in edge_combo:
-            if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1:
-                edges.append((i, j))
+            if np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[j]])) == 1:
+                sample_edges.append((i, j))
 
-        line_edge_combo = [(i, j) for i in range(0, len(line_vertices))
-                             for j in range(i + 1, len(line_vertices))]
+        wall_edges = [[(wall[edge[0]], wall[edge[1]]) for edge in sample_edges] for wall in wall_vertices]
 
-        for (i, j) in line_edge_combo:
-            if np.sum(np.array(line_vertices[i]) != np.array(line_vertices[j])) == 1:
-                line_edges.append((i, j))
+        surface_combo = [(i, j, k, l) for i in range(0, len(sample))
+                                      for j in range(i + 1, len(sample))
+                                      for k in range(j + 1, len(sample))
+                                      for l in range(k + 1, len(sample))]
 
-        surface_combo = [(i, j, k, l) for i in range(0, len(vertices))
-                                      for j in range(i + 1, len(vertices))
-                                      for k in range(j + 1, len(vertices))
-                                      for l in range(k + 1, len(vertices))]
+        sample_surfaces = []
 
         for (i, j, k, l) in surface_combo:
-            if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1:
-                surfaces_vertices.append((i, j, l, k))
-                surface_edges.append((edges.index((i, j)),
-                                    edges.index((i, k)),
-                                    edges.index((j, l)),
-                                    edges.index((k, l))))
+            if np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[k]])) == 1:
+                sample_surfaces.append((i, j, l, k))
 
-        line_surface_combo = [(i, j, k, l) for i in range(0, len(line_vertices))
-                                      for j in range(i + 1, len(line_vertices))
-                                      for k in range(j + 1, len(line_vertices))
-                                      for l in range(k + 1, len(line_vertices))]
+        wall_surfaces = [[(wall[surface[0]], wall[surface[1]], wall[surface[2]], wall[surface[3]])
+                         for surface in sample_surfaces] for wall in wall_vertices]
 
-        for (i, j, k, l) in line_surface_combo:
-            if np.sum(np.array(line_vertices[i]) != np.array(line_vertices[j])) == 1 \
-            and np.sum(np.array(line_vertices[i]) != np.array(line_vertices[k])) == 1 \
-            and np.sum(np.array(line_vertices[l]) != np.array(line_vertices[j])) == 1 \
-            and np.sum(np.array(line_vertices[l]) != np.array(line_vertices[k])) == 1:
-                line_surfaces_vertices.append((i, j, l, k))
-                line_surface_edges.append((line_edges.index((i, j)),
-                                    line_edges.index((i, k)),
-                                    line_edges.index((j, l)),
-                                    line_edges.index((k, l))))
+        cube_combo = [(i, j, k, l, m, n, o, p) for i in range(0, len(sample))
+                                               for j in range(i + 1, len(sample))
+                                               for k in range(j + 1, len(sample))
+                                               for l in range(k + 1, len(sample))
+                                               for m in range(l + 1, len(sample))
+                                               for n in range(m + 1, len(sample))
+                                               for o in range(n + 1, len(sample))
+                                               for p in range(o + 1, len(sample))]
 
-        cube_combo = [(i, j, k, l, m, n, o, p) for i in range(0, len(vertices))
-                                               for j in range(i + 1, len(vertices))
-                                               for k in range(j + 1, len(vertices))
-                                               for l in range(k + 1, len(vertices))
-                                               for m in range(l + 1, len(vertices))
-                                               for n in range(m + 1, len(vertices))
-                                               for o in range(n + 1, len(vertices))
-                                               for p in range(o + 1, len(vertices))]
+        sample_cubes = []
 
         count = 0
         for (i, j, k, l, m, n, o, p) in cube_combo:
-            if np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[m]) != np.array(vertices[n])) == 1 \
-            and np.sum(np.array(vertices[m]) != np.array(vertices[o])) == 1 \
-            and np.sum(np.array(vertices[p]) != np.array(vertices[n])) == 1 \
-            and np.sum(np.array(vertices[p]) != np.array(vertices[o])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[m])) == 1 \
-            and np.sum(np.array(vertices[n]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[n]) != np.array(vertices[m])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[i]) != np.array(vertices[m])) == 1 \
-            and np.sum(np.array(vertices[o]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[o]) != np.array(vertices[m])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[p])) == 1 \
-            and np.sum(np.array(vertices[n]) != np.array(vertices[j])) == 1 \
-            and np.sum(np.array(vertices[n]) != np.array(vertices[p])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[l]) != np.array(vertices[p])) == 1 \
-            and np.sum(np.array(vertices[o]) != np.array(vertices[k])) == 1 \
-            and np.sum(np.array(vertices[o]) != np.array(vertices[p])) == 1:
+            if np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[m]]) != np.array(vertices[sample[n]])) == 1 \
+            and np.sum(np.array(vertices[sample[m]]) != np.array(vertices[sample[o]])) == 1 \
+            and np.sum(np.array(vertices[sample[p]]) != np.array(vertices[sample[n]])) == 1 \
+            and np.sum(np.array(vertices[sample[p]]) != np.array(vertices[sample[o]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[m]])) == 1 \
+            and np.sum(np.array(vertices[sample[n]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[n]]) != np.array(vertices[sample[m]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[i]]) != np.array(vertices[sample[m]])) == 1 \
+            and np.sum(np.array(vertices[sample[o]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[o]]) != np.array(vertices[sample[m]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[p]])) == 1 \
+            and np.sum(np.array(vertices[sample[n]]) != np.array(vertices[sample[j]])) == 1 \
+            and np.sum(np.array(vertices[sample[n]]) != np.array(vertices[sample[p]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[l]]) != np.array(vertices[sample[p]])) == 1 \
+            and np.sum(np.array(vertices[sample[o]]) != np.array(vertices[sample[k]])) == 1 \
+            and np.sum(np.array(vertices[sample[o]]) != np.array(vertices[sample[p]])) == 1:
                 count += 1
-                cube_vertices.append((i, j, k, l, m, n, o, p))
-                cube_edges.append((
-                    edges.index((i, j)),
-                    edges.index((i, k)),
-                    edges.index((i, m)),
-                    edges.index((j, l)),
-                    edges.index((j, n)),
-                    edges.index((k, l)),
-                    edges.index((k, o)),
-                    edges.index((l, p)),
-                    edges.index((m, n)),
-                    edges.index((m, o)),
-                    edges.index((n, p)),
-                    edges.index((o, p)),
-                ))
+                sample_cubes.append((i, j, k, l, m, n, o, p))
 
-        self.vertices = wall_vertices
-        self.line_vertices = line_vertices
-        self.edges = edges
-        self.line_edges = line_edges
-        self.surfaces_vertices = surfaces_vertices
-        self.surface_edges = surface_edges
-        self.line_surfaces_vertices = line_surfaces_vertices
-        self.line_surface_edges = line_surface_edges
-        self.cube_vertices = cube_edges
-        self.cube_edges = cube_edges
+        wall_cubes = [[(wall[cube[0]], wall[cube[1]], wall[cube[2]], wall[cube[3]],
+                      wall[cube[4]], wall[cube[5]], wall[cube[6]], wall[cube[7]])
+                      for cube in sample_cubes] for wall in wall_vertices]
+
+        self.vertices = vertices
+        self.inner_vertices = inner_vertices
+        self.wall_vertices = wall_vertices
+        self.wall_edges = wall_edges
+        self.wall_surfaces = wall_surfaces
+        self.wall_cubes = wall_cubes

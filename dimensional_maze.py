@@ -33,8 +33,7 @@ def play_game(maze):
         player, enemy and item information.
     """
     #Initialise display object and draw maze.
-    display = Display(
-        maze.player.position, maze.player.orientation, maze.walls, maze)
+    display = Display(maze)
     display.draw()
 
     #Variable signalling when to quit the game

@@ -22,7 +22,11 @@ ROTATE_ANGLE = math.pi * 0.5 / ROTATE_FRAMES
 TOLERANCE = 1e-5
 
 
-
+class DisplayCube:
+    def __init__(self, walls, position, colour):
+        self.walls = walls
+        self.position = position
+        self.colour = colour
 
 
 class Display:
@@ -49,11 +53,11 @@ class Display:
 
         #Calculate subset of maze cells visible to player
         self.calculate_visible_dimensions()
-        self.walls = self.create_wall_info(maze.walls,
+        self.cubes = self.create_cube_info(maze.walls,
                                            maze.dimension_count - 1,
                                            maze.dimension_lengths,
                                            maze.goal)
-        self.sub_walls = self.create_sub_walls(self.walls, maze.dimension_count - 1)
+        self.sub_cubes = self.create_sub_cubes(self.cubes, maze.dimension_count - 1)
         self.n_cubes = []
         for i in range(3, maze.dimension_count + 1):
             self.n_cubes.append(Hypercube(i))
@@ -83,7 +87,7 @@ class Display:
         """
         for _ in range(0, MOVE_FRAMES):
             self.position[dimension] += direction / MOVE_FRAMES
-            self.sub_walls = self.create_sub_walls(self.walls,
+            self.sub_cubes = self.create_sub_cubes(self.cubes,
                                                    self.position.size - 1)
             self.draw()
 
@@ -108,7 +112,7 @@ class Display:
 
         self.orientation = np.matmul(self.orientation, rotation_matrix)
         self.calculate_visible_dimensions()
-        self.sub_walls = self.create_sub_walls(self.walls,
+        self.sub_cubes = self.create_sub_cubes(self.cubes,
                                                self.position.size - 1)
 
         for _ in range(1, ROTATE_FRAMES):
@@ -116,29 +120,29 @@ class Display:
             self.orientation = np.matmul(self.orientation, rotation_matrix)
 
         self.calculate_visible_dimensions()
-        self.sub_walls = self.create_sub_walls(self.walls,
+        self.sub_cubes = self.create_sub_cubes(self.cubes,
                                                self.position.size - 1)
         self.draw()
 
-    def create_wall_info(self, walls, level, dimension_lengths, goal, position = []):
+    def create_cube_info(self, walls, level, dimension_lengths, goal, position = []):
         """Create a multi-dimensional array which is a subset of the 
         walls passed in representing what is visible to the player.
 
         This function recursively iterates through the multi-dimensional
         array 'walls' picking out the grid cubes that are visible
-        according to self.visible dimensions to be added to a return
-        multi-dimensional array sub_walls.
+        according to self.visible_dimensions to be added to a return
+        multi-dimensional array sub_cubes.
 
         Keyword arguments:
         walls -- The walls of the maze.
         level -- The recursion level representing the dimension of
             walls being interated through.
-        """
-        sub_walls = []
+      """
+        sub_cubes = []
 
         if level > 0:
             for i in range(0, len(walls)):
-                sub_walls.append(self.create_wall_info(walls[i],
+                sub_cubes.append(self.create_cube_info(walls[i],
                                                        level - 1,
                                                        dimension_lengths,
                                                        goal,
@@ -146,47 +150,47 @@ class Display:
         else:
             for i in range(0, len(walls)):
                 if goal == [i] + position:
-                    wall_info = (walls[i], [i] + position, (1, 1, 1))
+                    wall_info = DisplayCube(walls[i], [i] + position, (1, 1, 1))
                 else:
-                    wall_info = (walls[i], [i] + position, self.calculate_colours([i] + position, range(0,len(dimension_lengths)), dimension_lengths))
+                    wall_info = DisplayCube(walls[i], [i] + position, self.calculate_colours([i] + position, range(0,len(dimension_lengths)), dimension_lengths))
 
-                sub_walls.append(wall_info)
+                sub_cubes.append(wall_info)
 
-        return sub_walls
+        return sub_cubes
 
 
-    def create_sub_walls(self, walls, level):
+    def create_sub_cubes(self, walls, level):
         """Create a multi-dimensional array which is a subset of the 
         walls passed in representing what is visible to the player.
 
         This function recursively iterates through the multi-dimensional
         array 'walls' picking out the grid cubes that are visible
         according to self.visible dimensions to be added to a return
-        multi-dimensional array sub_walls.
+        multi-dimensional array sub_cubes.
 
         Keyword arguments:
         walls -- The walls of the maze.
         level -- The recursion level representing the dimension of
             walls being interated through.
         """
-        sub_walls = []
+        sub_cubes = []
 
         if level in self.visible_dimensions:
             if level > 0:
                 for i in range(0, len(walls)):
-                    sub_walls = sub_walls + self.create_sub_walls(walls[i],
+                    sub_cubes = sub_cubes + self.create_sub_cubes(walls[i],
                                                            level - 1)
             else:
                 for i in range(0, len(walls)):
-                    sub_walls = sub_walls + [walls[i]]
+                    sub_cubes = sub_cubes + [walls[i]]
         else:
             wall_index = int(round(self.position[level]))
             if level > 0:
-                sub_walls = sub_walls + self.create_sub_walls(walls[wall_index], level - 1)
+                sub_cubes = sub_cubes + self.create_sub_cubes(walls[wall_index], level - 1)
             else:
-                sub_walls = sub_walls + [walls[wall_index]]
+                sub_cubes = sub_cubes + [walls[wall_index]]
 
-        return sub_walls
+        return sub_cubes
 
     def calculate_visible_dimensions(self):
         """Calculate the dimensions visible to the player using
@@ -288,16 +292,16 @@ class Display:
 
         glBegin(GL_QUADS)
 
-        for cube in self.sub_walls:
-            coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
+        for cube in self.sub_cubes:
+            coords = [cube.position[vis_dim] for vis_dim in self.visible_dimensions]
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
-            glColor3fv(cube[2])
+            glColor3fv(cube.colour)
 
             for index in range(0, dim_num << 1):
                 dim = self.visible_dimensions[int(index >> 1)]
                 parity = index & 1
 
-                if cube[0] & 1 << ((dim << 1) + parity):
+                if cube.walls & 1 << ((dim << 1) + parity):
                     vertices = n_cube.vertices[index]
 
 
@@ -332,8 +336,8 @@ class Display:
 
         glBegin(GL_LINES)
         glColor3fv((0, 0, 0))
-        for cube in self.sub_walls:
-            coords = [cube[1][vis_dim] for vis_dim in self.visible_dimensions]
+        for cube in self.sub_cubes:
+            coords = [cube.position[vis_dim] for vis_dim in self.visible_dimensions]
 
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
 

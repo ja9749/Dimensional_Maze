@@ -57,10 +57,10 @@ class Display:
                                            maze.dimension_count - 1,
                                            maze.dimension_lengths,
                                            maze.goal)
-        self.sub_cubes = self.create_sub_cubes(self.cubes, maze.dimension_count - 1)
-        self.n_cubes = []
+        self.visible_cubes = self.find_visible_cubes(self.cubes, maze.dimension_count - 1)
+        self.n_cubes = [None] * (maze.dimension_count - 2)
         for i in range(3, maze.dimension_count + 1):
-            self.n_cubes.append(Hypercube(i))
+            self.n_cubes[i - 3] = Hypercube(i)
 
         #Initialise pygame display
         #TODO: Understand this section and make it editable for player.
@@ -87,8 +87,8 @@ class Display:
         """
         for _ in range(0, MOVE_FRAMES):
             self.position[dimension] += direction / MOVE_FRAMES
-            self.sub_cubes = self.create_sub_cubes(self.cubes,
-                                                   self.position.size - 1)
+            self.visible_cubes = self.find_visible_cubes(self.cubes,
+                                                         self.position.size - 1)
             self.draw()
 
     def draw_rotate(self, dimensions, direction):
@@ -112,16 +112,16 @@ class Display:
 
         self.orientation = np.matmul(self.orientation, rotation_matrix)
         self.calculate_visible_dimensions()
-        self.sub_cubes = self.create_sub_cubes(self.cubes,
-                                               self.position.size - 1)
+        self.visible_cubes = self.find_visible_cubes(self.cubes,
+                                                     self.position.size - 1)
 
         for _ in range(1, ROTATE_FRAMES):
             self.draw()
             self.orientation = np.matmul(self.orientation, rotation_matrix)
 
         self.calculate_visible_dimensions()
-        self.sub_cubes = self.create_sub_cubes(self.cubes,
-                                               self.position.size - 1)
+        self.visible_cubes = self.find_visible_cubes(self.cubes,
+                                                     self.position.size - 1)
         self.draw()
 
     def create_cube_info(self, walls, level, dimension_lengths, goal, position = []):
@@ -138,59 +138,55 @@ class Display:
         level -- The recursion level representing the dimension of
             walls being interated through.
       """
-        sub_cubes = []
+        cubes = []
 
         if level > 0:
             for i in range(0, len(walls)):
-                sub_cubes.append(self.create_cube_info(walls[i],
-                                                       level - 1,
-                                                       dimension_lengths,
-                                                       goal,
-                                                       [i] + position)) 
+                cubes.append(self.create_cube_info(walls[i], level - 1, dimension_lengths, goal, [i] + position))
         else:
             for i in range(0, len(walls)):
                 if goal == [i] + position:
                     wall_info = DisplayCube(walls[i], [i] + position, (1, 1, 1))
                 else:
-                    wall_info = DisplayCube(walls[i], [i] + position, self.calculate_colours([i] + position, range(0,len(dimension_lengths)), dimension_lengths))
+                    colour = self.calculate_colours([i] + position, range(0,len(dimension_lengths)), dimension_lengths)
+                    wall_info = DisplayCube(walls[i], [i] + position, colour)
 
-                sub_cubes.append(wall_info)
+                cubes.append(wall_info)
 
-        return sub_cubes
+        return cubes
 
 
-    def create_sub_cubes(self, walls, level):
+    def find_visible_cubes(self, walls, level):
         """Create a multi-dimensional array which is a subset of the 
         walls passed in representing what is visible to the player.
 
         This function recursively iterates through the multi-dimensional
         array 'walls' picking out the grid cubes that are visible
         according to self.visible dimensions to be added to a return
-        multi-dimensional array sub_cubes.
+        multi-dimensional array visible_cubes.
 
         Keyword arguments:
         walls -- The walls of the maze.
         level -- The recursion level representing the dimension of
             walls being interated through.
         """
-        sub_cubes = []
+        visible_cubes = []
 
         if level in self.visible_dimensions:
             if level > 0:
                 for i in range(0, len(walls)):
-                    sub_cubes = sub_cubes + self.create_sub_cubes(walls[i],
-                                                           level - 1)
+                    visible_cubes = visible_cubes + self.find_visible_cubes(walls[i], level - 1)
             else:
                 for i in range(0, len(walls)):
-                    sub_cubes = sub_cubes + [walls[i]]
+                    visible_cubes = visible_cubes + [walls[i]]
         else:
             wall_index = int(round(self.position[level]))
             if level > 0:
-                sub_cubes = sub_cubes + self.create_sub_cubes(walls[wall_index], level - 1)
+                visible_cubes = visible_cubes + self.find_visible_cubes(walls[wall_index], level - 1)
             else:
-                sub_cubes = sub_cubes + [walls[wall_index]]
+                visible_cubes = visible_cubes + [walls[wall_index]]
 
-        return sub_cubes
+        return visible_cubes
 
     def calculate_visible_dimensions(self):
         """Calculate the dimensions visible to the player using
@@ -292,7 +288,7 @@ class Display:
 
         glBegin(GL_QUADS)
 
-        for cube in self.sub_cubes:
+        for cube in self.visible_cubes:
             coords = [cube.position[vis_dim] for vis_dim in self.visible_dimensions]
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
             glColor3fv(cube.colour)
@@ -303,75 +299,87 @@ class Display:
 
                 if cube.walls & 1 << ((dim << 1) + parity):
                     vertices = n_cube.vertices[index]
-
-
-                    for i in range(0, len(vertices)):
-                        translated_vertices[i] = [v + t for (v, t) in zip(vertices[i], t_coords)]
-
-                        rotated_vertices[i] = np.matmul(sub_orientation, translated_vertices[i])
-                        if dim_num == 3:
-                            rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
-
-                    if dim_num == 3:
-                        for surfaces in surfaces_vertices:
-                            for vertex in surfaces:
-                                glVertex3fv(rotated_vertices[vertex])
-                    else:
-                        [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
-
-                        if len(intersecting_vertices) > 0:
-                            for vertex in range(0, len(intersecting_vertices)):
-                                intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
-
-                            vertex_numbers = []
-                            for vertex in cubes_vertices[0]:
-                                if vertex in edge_numbers:
-                                    vertex_numbers.append(edge_numbers.index(vertex))
-                            vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
-
-                            for vertex in vertex_numbers:
-                                glVertex3fv(intersecting_vertices[vertex])
-
+                    self.draw_vertices(dim_num, t_coords, vertices, surfaces_vertices, cubes_vertices, edges, sub_orientation)
         glEnd()
 
         glBegin(GL_LINES)
         glColor3fv((0, 0, 0))
-        for cube in self.sub_cubes:
+        for cube in self.visible_cubes:
             coords = [cube.position[vis_dim] for vis_dim in self.visible_dimensions]
-
             t_coords = [2 * (coord - self.position[dim]) for (coord, dim) in zip(coords, self.visible_dimensions)]
-
-            for i in range(0, len(line_vertices)):
-                translated_vertices[i] = [v + t for (v, t) in zip(line_vertices[i], t_coords)]
-
-                rotated_vertices[i] = np.matmul(sub_orientation, translated_vertices[i])
-                if dim_num == 3:
-                    rotated_vertices[i] = [rotated_vertices[i][1],rotated_vertices[i][2],-rotated_vertices[i][0]]
-
-            if dim_num == 3:
-                for edge in line_edges:
-                    for vertex in edge:
-                        glVertex3fv(rotated_vertices[vertex])
-            else:
-                [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, line_edges)
-
-                if len(intersecting_vertices) > 0:
-                    for vertex in range(0, len(intersecting_vertices)):
-                        intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],intersecting_vertices[vertex][2],-intersecting_vertices[vertex][0]]
-
-                    for surface in line_surfaces_edges:
-                        vertex_numbers = []
-                        for vertex in surface:
-                            if vertex in edge_numbers:
-                                vertex_numbers.append(edge_numbers.index(vertex))
-
-                        if len(vertex_numbers) == 2:
-                            for vertex in vertex_numbers:
-                                glVertex3fv(intersecting_vertices[vertex])
-
+            self.draw_vertices_test(dim_num, t_coords, line_vertices, line_edges, line_surfaces_edges, line_edges, sub_orientation)
         glEnd()
 
         pygame.display.flip()
+
+    def draw_vertices_test(self, dim_num, coords, vertices, vertices_3D, vertices_ND, edges, orientation):
+        translated_vertices = [[v + t for (v, t) in zip(vertex, coords)] for vertex in vertices]
+        rotated_vertices = [np.matmul(orientation, vertex) for vertex in translated_vertices]
+        if dim_num == 3:
+            rotated_vertices = self.transform_to_real_world_axis(rotated_vertices)
+
+            for surfaces in vertices_3D:
+                for vertex in surfaces:
+                    glVertex3fv(rotated_vertices[vertex])
+
+        else:
+            [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
+
+            if len(intersecting_vertices) > 0:
+                for vertex in range(0, len(intersecting_vertices)):
+                    intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],
+                                                     intersecting_vertices[vertex][2],
+                                                     -intersecting_vertices[vertex][0]]
+
+                for vert_sub in vertices_ND:
+                    vertex_numbers = []
+                    for vertex in vert_sub:
+                        if vertex in edge_numbers:
+                            vertex_numbers.append(edge_numbers.index(vertex))
+
+                    if len(vertex_numbers) == 4:
+                        vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
+
+                    if len(vertex_numbers) == 2:
+                        for vertex in vertex_numbers:
+                            glVertex3fv(intersecting_vertices[vertex])
+
+
+    def draw_vertices(self, dim_num, coords, vertices, vertices_3D, vertices_ND, edges, orientation):
+        translated_vertices = [[v + t for (v, t) in zip(vertex, coords)] for vertex in vertices]
+        rotated_vertices = [np.matmul(orientation, vertex) for vertex in translated_vertices]
+        if dim_num == 3:
+            rotated_vertices = self.transform_to_real_world_axis(rotated_vertices)
+
+            for surfaces in vertices_3D:
+                for vertex in surfaces:
+                    glVertex3fv(rotated_vertices[vertex])
+
+        else:
+            [intersecting_vertices, edge_numbers] = self.calculate_intersections(rotated_vertices, edges)
+
+            if len(intersecting_vertices) > 0:
+                for vertex in range(0, len(intersecting_vertices)):
+                    intersecting_vertices[vertex] = [intersecting_vertices[vertex][1],
+                                                     intersecting_vertices[vertex][2],
+                                                     -intersecting_vertices[vertex][0]]
+
+                for vert_sub in vertices_ND:
+                    vertex_numbers = []
+                    for vertex in vert_sub:
+                        if vertex in edge_numbers:
+                            vertex_numbers.append(edge_numbers.index(vertex))
+                    
+                    if len(vertex_numbers) > 2:
+                        vertex_numbers = self.sort_vertex_numbers(vertex_numbers, intersecting_vertices)
+
+                    if len(vertex_numbers) >= 2:
+                        for vertex in vertex_numbers:
+                            glVertex3fv(intersecting_vertices[vertex])
+
+
+    def transform_to_real_world_axis(self, vertices):
+        return [[v[1], v[2], -v[0]] for v in vertices]
 
     def calculate_intersections(self, vertices, edges):
         intersecting_vertices = []

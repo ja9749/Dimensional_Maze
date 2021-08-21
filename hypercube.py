@@ -6,25 +6,20 @@ class Hypercube:
         print("\ndim_num", dim_num)
 
         line_vertices = list(itertools.product([0.999, -0.999], repeat=dim_num))
-        temp_vertices = list(itertools.product([0.9999, -0.9999], repeat=dim_num))
+        base_vertices = list(itertools.product([1, -1], repeat=dim_num))
 
-        wall_vertices = []
-        wall_line_vertices = []
+        walls = []
+
+        # Creating 2 * dim_num subsets for vertices that make up each wall of the hypercube, 2 in each dimension for both directions
         for i in range(0, 2 * dim_num):
-            wall_vertices.append([])
-            wall_line_vertices.append([])
-            for vertex in temp_vertices:
-                if ((i & 1) and (vertex[i >> 1] < 0)) \
-                or (not (i & 1) and (vertex[i >> 1] > 0)):
-                    wall_vertices[i].append(vertex)
-                    wall_line_vertices[i].append(vertex)
+            if (i & 1):
+                # Grab subset from base_vertices of vertices that have negative coordinate in position i / 2
+                walls.append([vertex for vertex in base_vertices if vertex[i >> 1] < 0])
+            else:
+                # Grab subset from base_vertices of vertices that have positive coordinate in position i / 2
+                walls.append([vertex for vertex in base_vertices if vertex[i >> 1] > 0])
 
-        wall_edges = []
-        wall_surfaces_vertices = []
-        wall_surface_edges = []
-        wall_cube_vertices = []
-        wall_cube_edges = []
-        vertices = wall_vertices[0]
+        vertices = walls[0]
 
         edges = []
         line_edges = []
@@ -35,6 +30,7 @@ class Hypercube:
         cube_vertices = []
         cube_edges = []
 
+        # Test each combination of vertices to determine which ones are adjacent/form an edge
         edge_combo = [(i, j) for i in range(0, len(vertices))
                              for j in range(i + 1, len(vertices))]
 
@@ -133,7 +129,7 @@ class Hypercube:
                     edges.index((o, p)),
                 ))
 
-        self.vertices = wall_vertices
+        self.walls = walls
         self.line_vertices = line_vertices
         self.edges = edges
         self.line_edges = line_edges

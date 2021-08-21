@@ -73,6 +73,7 @@ class Display:
         glTranslatef(0.0, 0.0, -1.0)
         glRotatef(20, 0, 0, 0)
 
+
     def draw_move(self, dimension, direction):
         """Draw the animation of a the player moving through the maze.
 
@@ -90,6 +91,7 @@ class Display:
             self.visible_cubes = self.find_visible_cubes(self.cubes,
                                                          self.position.size - 1)
             self.draw()
+
 
     def draw_rotate(self, dimensions, direction):
         """Draw the animation of a the player rotating in the maze.
@@ -123,6 +125,7 @@ class Display:
         self.visible_cubes = self.find_visible_cubes(self.cubes,
                                                      self.position.size - 1)
         self.draw()
+
 
     def create_cube_info(self, walls, level, dimension_lengths, goal, position = []):
         """Create a multi-dimensional array which is a subset of the 
@@ -188,6 +191,7 @@ class Display:
 
         return visible_cubes
 
+
     def calculate_visible_dimensions(self):
         """Calculate the dimensions visible to the player using
         orientation.
@@ -252,6 +256,7 @@ class Display:
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_LINE_SMOOTH)
         glEnable(GL_POLYGON_SMOOTH)
+        # glEnable(GL_CULL_FACE)
         glLineWidth(5.0)
 
         dim_num = len(self.visible_dimensions)
@@ -278,13 +283,8 @@ class Display:
         line_edges = n_cube.line_edges
         surfaces_vertices = n_cube.surfaces_vertices
         surfaces_edges = n_cube.surface_edges
-        line_surfaces_vertices = n_cube.line_surfaces_vertices
         line_surfaces_edges = n_cube.line_surface_edges
         cubes_vertices = n_cube.cube_vertices
-        cubes_edges = n_cube.cube_edges
-
-        translated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
-        rotated_vertices = np.array([[0] * dim_num] * pow(2, dim_num), float)
 
         glBegin(GL_QUADS)
 
@@ -298,7 +298,7 @@ class Display:
                 parity = index & 1
 
                 if cube.walls & 1 << ((dim << 1) + parity):
-                    vertices = n_cube.vertices[index]
+                    vertices = n_cube.walls[index]
                     self.draw_vertices(dim_num, t_coords, vertices, surfaces_vertices, cubes_vertices, edges, sub_orientation)
         glEnd()
 
@@ -311,6 +311,7 @@ class Display:
         glEnd()
 
         pygame.display.flip()
+
 
     def draw_vertices_test(self, dim_num, coords, vertices, vertices_3D, vertices_ND, edges, orientation):
         translated_vertices = [[v + t for (v, t) in zip(vertex, coords)] for vertex in vertices]
@@ -381,6 +382,7 @@ class Display:
     def transform_to_real_world_axis(self, vertices):
         return [[v[1], v[2], -v[0]] for v in vertices]
 
+
     def calculate_intersections(self, vertices, edges):
         intersecting_vertices = []
         edge_numbers = []
@@ -410,6 +412,7 @@ class Display:
                         edge_numbers.append(count)
             count = count + 1
         return [np.array(intersecting_vertices), edge_numbers]
+
 
     def sort_vertex_numbers(self, vertex_numbers, intersecting_vertices):
         if len(vertex_numbers) != 4:
